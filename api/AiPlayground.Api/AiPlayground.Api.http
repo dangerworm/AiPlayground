@@ -1,0 +1,6 @@
+@WebApplication1_HostAddress = https://localhost:7012
+
+GET {{WebApplication1_HostAddress}}/Interaction/GetSystemPrompt
+Accept: application/json
+
+###

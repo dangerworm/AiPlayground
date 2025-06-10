@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiPlayground.Api", "AiPlayground.Api\AiPlayground.Api.csproj", "{5F0A9703-3E06-4F92-8AD9-3BF50D506AE7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5F0A9703-3E06-4F92-8AD9-3BF50D506AE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F0A9703-3E06-4F92-8AD9-3BF50D506AE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F0A9703-3E06-4F92-8AD9-3BF50D506AE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F0A9703-3E06-4F92-8AD9-3BF50D506AE7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {26A4F3CF-4C9C-4BC7-9EB0-A861C8A28066}
+	EndGlobalSection
+EndGlobal

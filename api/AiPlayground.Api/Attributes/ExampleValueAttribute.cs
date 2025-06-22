@@ -1,4 +1,4 @@
-﻿namespace AiPlayground.Api
+﻿namespace AiPlayground.Api.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class ExampleValueAttribute : Attribute

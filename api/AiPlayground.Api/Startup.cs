@@ -1,5 +1,7 @@
-﻿using AiPlayground.Api.Services;
+﻿using AiPlayground.Api.Providers;
+using AiPlayground.Api.Services;
 using AiPlayground.Api.Workflows;
+using AiPlayground.Data;
 
 namespace AiPlayground.Api
 {
@@ -8,6 +10,8 @@ namespace AiPlayground.Api
         public void ConfigureServices(IConfiguration configuration, IServiceCollection services)
         {
             services
+                .AddProviders()
+                .AddRepositories()
                 .AddWorkflows()
                 .AddServices();
 

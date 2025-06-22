@@ -3,10 +3,11 @@ using AiPlayground.Api.Models.Actions;
 using System.Runtime.CompilerServices;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using AiPlayground.Api.Attributes;
 
-namespace AiPlayground.Api.Workflows
+namespace AiPlayground.Api.Providers
 {
-    public class ActionWorkflow
+    public class ActionProvider
     {
         public string GetAvailableActions()
         {

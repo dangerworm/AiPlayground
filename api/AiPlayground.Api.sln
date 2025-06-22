@@ -1,9 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197 d17.13
+VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiPlayground.Api", "AiPlayground.Api\AiPlayground.Api.csproj", "{5F0A9703-3E06-4F92-8AD9-3BF50D506AE7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{213A7DFA-3E23-4E1F-925B-0E205AFC6ECA} = {213A7DFA-3E23-4E1F-925B-0E205AFC6ECA}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiPlayground.Data", "AiPlayground.Data\AiPlayground.Data.csproj", "{213A7DFA-3E23-4E1F-925B-0E205AFC6ECA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiPlayground.Core", "AiPlayground.Core\AiPlayground.Core.csproj", "{AF389EE2-DCF5-4857-A339-E0E0009D6E7B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +22,14 @@ Global
 		{5F0A9703-3E06-4F92-8AD9-3BF50D506AE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F0A9703-3E06-4F92-8AD9-3BF50D506AE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F0A9703-3E06-4F92-8AD9-3BF50D506AE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{213A7DFA-3E23-4E1F-925B-0E205AFC6ECA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{213A7DFA-3E23-4E1F-925B-0E205AFC6ECA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{213A7DFA-3E23-4E1F-925B-0E205AFC6ECA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{213A7DFA-3E23-4E1F-925B-0E205AFC6ECA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF389EE2-DCF5-4857-A339-E0E0009D6E7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF389EE2-DCF5-4857-A339-E0E0009D6E7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF389EE2-DCF5-4857-A339-E0E0009D6E7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF389EE2-DCF5-4857-A339-E0E0009D6E7B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

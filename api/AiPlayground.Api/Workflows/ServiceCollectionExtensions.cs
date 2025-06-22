@@ -5,7 +5,10 @@
         public static IServiceCollection AddWorkflows(this IServiceCollection services)
         {
             services
-                .AddScoped<ActionWorkflow>();
+                .AddScoped<CharacterWorkflow>()
+                .AddScoped<ConnectionWorkflow>()
+                .AddScoped<EnvironmentWorkflow>()
+                .AddScoped<PromptWorkflow>();
 
             return services;
         }

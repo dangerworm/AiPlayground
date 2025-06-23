@@ -33,9 +33,9 @@ export type InteractInput = {
 };
 
 export type PlaygroundSetup = {
-  availableModels: string[];
-  cellSize: number;
-  gridWidth: number;
-  gridHeight: number;
+  available_models: string[];
   characters: Character[];
+  cell_size: number;
+  grid_width: number;
+  grid_height: number;
 }; 

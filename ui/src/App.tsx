@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Box, Button, CircularProgress, Container, Fab } from '@mui/material';
+import { Box, Button, CircularProgress, Container, Fab, Typography, Paper } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { Character, PlaygroundSetup } from './types/api';
+import { Character, PlaygroundSetup, GridPosition, CreateCharacterInput } from './types/api';
 import { Grid } from './components/Grid';
 import { CreateCharacterDrawer } from './components/CreateCharacterDrawer';
 import { CharacterDetailsDrawer } from './components/CharacterDetailsDrawer';
@@ -16,6 +16,7 @@ function App() {
   const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [chatHistory, setChatHistory] = useState<Record<string, string[]>>({});
+  const [selectedPosition, setSelectedPosition] = useState<GridPosition | undefined>(undefined);
 
   useEffect(() => {
     loadPlaygroundSetup();
@@ -35,7 +36,7 @@ function App() {
     }
   };
 
-  const handleCreateCharacter = async (input: any) => {
+  const handleCreateCharacter = async (input: CreateCharacterInput) => {
     try {
       const character = await createCharacter(input);
       setSetup((prev) => prev ? {
@@ -49,6 +50,16 @@ function App() {
 
   const handleCharacterClick = (character: Character) => {
     setSelectedCharacter(character);
+  };
+
+  const handleEmptyCellClick = (position: GridPosition) => {
+    setSelectedPosition(position);
+    setCreateDrawerOpen(true);
+  };
+
+  const handleCreateDrawerClose = () => {
+    setCreateDrawerOpen(false);
+    setSelectedPosition(undefined);
   };
 
   const handleInteract = async (characterId: string) => {
@@ -84,13 +95,41 @@ function App() {
 
   return (
     <Box sx={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      {/* Header */}
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          position: 'absolute', 
+          top: 16, 
+          left: 16, 
+          right: 16, 
+          zIndex: 1,
+          p: 2,
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
+        <Typography variant="h4" gutterBottom>
+          AI Playground
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          {setup.characters.length === 0 
+            ? "Welcome! Create your first AI character by clicking the '+' button below or clicking any empty cell on the grid. Each character will appear on the grid and you can interact with them in real-time."
+            : `${setup.characters.length} character${setup.characters.length === 1 ? '' : 's'} in the playground. Click on any character to interact with them.`
+          }
+        </Typography>
+      </Paper>
+
+      {/* 3D Canvas */}
       <Canvas>
         <Grid
           setup={setup}
           onCharacterClick={handleCharacterClick}
+          onEmptyCellClick={handleEmptyCellClick}
         />
       </Canvas>
 
+      {/* Add Character Button */}
       <Fab
         color="primary"
         sx={{ position: 'absolute', bottom: 16, right: 16 }}
@@ -99,11 +138,13 @@ function App() {
         <AddIcon />
       </Fab>
 
+      {/* Drawers */}
       <CreateCharacterDrawer
         open={createDrawerOpen}
-        onClose={() => setCreateDrawerOpen(false)}
+        onClose={handleCreateDrawerClose}
         onSubmit={handleCreateCharacter}
         setup={setup}
+        initialPosition={selectedPosition}
       />
 
       <CharacterDetailsDrawer

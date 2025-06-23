@@ -7,6 +7,7 @@ public class CharacterDto
         DateTime createdAt,
         ConnectionDto connection,
         int ageInEnvironmentIterations,
+        string colour,
         Tuple<int, int> gridPosition
     )
     {
@@ -14,6 +15,7 @@ public class CharacterDto
         CreatedAt = createdAt;
         Connection = connection;
         AgeInEnvironmentIterations = ageInEnvironmentIterations;
+        Colour = colour;
         GridPosition = gridPosition;
     }
 
@@ -21,5 +23,6 @@ public class CharacterDto
     public DateTime CreatedAt { get; }
     public ConnectionDto Connection { get; }
     public int AgeInEnvironmentIterations { get; }
+    public string Colour { get; }
     public Tuple<int, int> GridPosition { get; }
 }

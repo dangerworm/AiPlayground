@@ -16,21 +16,24 @@ public class PlaygroundService(
     public async Task<CharacterDto> CreateCharacter(CreateCharacterInputModel characterInput)
     {
         var connection = _connectionWorkflow.CreateConnection(characterInput.Model);
-        var character = await _characterWorkflow.CreateCharacterAsync(connection, characterInput.GridPosition);
+        var character = await _characterWorkflow.CreateCharacterAsync(characterInput.Colour, connection, characterInput.GridPosition);
         
         return character is null 
             ? throw new InvalidOperationException("Failed to create character.") 
             : character;
     }
 
-    public PlaygroundSetupResponseModel GetSetup()
+    public async Task<PlaygroundSetupResponseModel> GetSetup()
     {
-        return new PlaygroundSetupResponseModel
+        var model = new PlaygroundSetupResponseModel
         {
             AvailableModels = _characterWorkflow.GetAvailableModels(),
+            Characters = await _characterWorkflow.GetCharactersAsync(),
             CellSize = PlaygroundConstants.DefaultCellSizePixels,
             GridWidth = PlaygroundConstants.DefaultGridSize,
             GridHeight = PlaygroundConstants.DefaultGridSize
         };
+
+        return model;
     }
 }

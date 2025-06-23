@@ -8,7 +8,7 @@ public class MemoryRepository : JsonFileStore
 
     public async Task<IEnumerable<MemoryEntity>> GetMemoriesAsync()
     {
-        var memory = await LoadAsync<IEnumerable<MemoryEntity>>();
+        var memory = await LoadAsync<List<MemoryEntity>>();
         return memory ?? [];
     }
     

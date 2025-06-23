@@ -17,9 +17,9 @@ public class CharacterWorkflow(
         return _modelRepository.GetModels();
     }
 
-    public async Task<CharacterDto> CreateCharacterAsync(ConnectionDto connection, Tuple<int, int> gridPosition)
+    public async Task<CharacterDto> CreateCharacterAsync(string colour, ConnectionDto connection, Tuple<int, int> gridPosition)
     {
-        var character = await _characterRepository.CreateCharacter(connection, gridPosition);
+        var character = await _characterRepository.CreateCharacter(colour, connection, gridPosition);
         return character.AsDto();
     }
     public async Task<IEnumerable<CharacterDto>> GetCharactersAsync()

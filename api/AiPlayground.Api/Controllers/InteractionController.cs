@@ -14,7 +14,7 @@ public class InteractionController(
     private readonly ILogger<InteractionController> _logger = logger;
     private readonly InteractionService _interactionService = interactionService ?? throw new ArgumentNullException(nameof(interactionService));
 
-    [HttpGet(Name = "Interact")]
+    [HttpPost(Name = "Interact")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     //public async Task<ActionResult<InteractResponseModel>> Interact([FromBody] InteractInputModel model)

@@ -7,7 +7,7 @@ public class CharacterRepository : JsonFileStore
 {
     protected override string FilePath => "Characters.json";
 
-    public async Task<CharacterEntity> CreateCharacter(ConnectionDto connectionDto, Tuple<int, int> gridPosition)
+    public async Task<CharacterEntity> CreateCharacter(string colour, ConnectionDto connectionDto, Tuple<int, int> gridPosition)
     {
         var connection = new ConnectionEntity
         {
@@ -22,11 +22,12 @@ public class CharacterRepository : JsonFileStore
         var character = new CharacterEntity
         {
             AgeInEnvironmentIterations = 0,
+            Colour = colour,
             Connection = connection,
             GridPosition = gridPosition
         };
 
-        var characters = await LoadAsync<IEnumerable<CharacterEntity>>() ?? [];
+        var characters = await LoadAsync<List<CharacterEntity>>() ?? [];
         var characterList = characters.ToList();
         characterList.Add(character);
         await SaveAsync(characterList);
@@ -36,13 +37,13 @@ public class CharacterRepository : JsonFileStore
 
     public async Task<IEnumerable<CharacterEntity>> GetCharactersAsync()
     {
-        var characters = await LoadAsync<IEnumerable<CharacterEntity>>();
+        var characters = await LoadAsync<List<CharacterEntity>>();
         return characters ?? [];
     }
 
     public async Task<CharacterEntity> GetCharacterByIdAsync(Guid id)
     {
-        var characters = await LoadAsync<IEnumerable<CharacterEntity>>();
+        var characters = await LoadAsync<List<CharacterEntity>>();
         return characters?.FirstOrDefault(c => c.Id == id)
                ?? throw new KeyNotFoundException($"Character with ID {id} not found.");
     }

@@ -1,35 +1,120 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Box, Button, CircularProgress, Container, Fab } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { Character, PlaygroundSetup } from './types/api';
+import { Grid } from './components/Grid';
+import { CreateCharacterDrawer } from './components/CreateCharacterDrawer';
+import { CharacterDetailsDrawer } from './components/CharacterDetailsDrawer';
+import { createCharacter, getPlaygroundSetup, interactWithCharacter } from './services/api';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [setup, setSetup] = useState<PlaygroundSetup | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
+  const [chatHistory, setChatHistory] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    loadPlaygroundSetup();
+  }, []);
+
+  const loadPlaygroundSetup = async () => {
+    try {
+      setLoading(true);
+      const data = await getPlaygroundSetup();
+      setSetup(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load playground setup');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateCharacter = async (input: any) => {
+    try {
+      const character = await createCharacter(input);
+      setSetup((prev) => prev ? {
+        ...prev,
+        characters: [...prev.characters, character]
+      } : null);
+    } catch (err) {
+      console.error('Failed to create character:', err);
+    }
+  };
+
+  const handleCharacterClick = (character: Character) => {
+    setSelectedCharacter(character);
+  };
+
+  const handleInteract = async (characterId: string) => {
+    try {
+      const response = await interactWithCharacter({ character_id: characterId });
+      setChatHistory((prev) => ({
+        ...prev,
+        [characterId]: [...(prev[characterId] || []), response]
+      }));
+    } catch (err) {
+      console.error('Failed to interact with character:', err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (error || !setup) {
+    return (
+      <Container sx={{ textAlign: 'center', py: 4 }}>
+        <Box sx={{ color: 'error.main', mb: 2 }}>{error}</Box>
+        <Button variant="contained" onClick={loadPlaygroundSetup}>
+          Retry
+        </Button>
+      </Container>
+    );
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Box sx={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      <Canvas>
+        <Grid
+          setup={setup}
+          onCharacterClick={handleCharacterClick}
+        />
+      </Canvas>
+
+      <Fab
+        color="primary"
+        sx={{ position: 'absolute', bottom: 16, right: 16 }}
+        onClick={() => setCreateDrawerOpen(true)}
+      >
+        <AddIcon />
+      </Fab>
+
+      <CreateCharacterDrawer
+        open={createDrawerOpen}
+        onClose={() => setCreateDrawerOpen(false)}
+        onSubmit={handleCreateCharacter}
+        setup={setup}
+      />
+
+      <CharacterDetailsDrawer
+        open={!!selectedCharacter}
+        onClose={() => setSelectedCharacter(null)}
+        character={selectedCharacter}
+        chatHistory={selectedCharacter ? chatHistory[selectedCharacter.id] || [] : []}
+        onInteract={handleInteract}
+      />
+    </Box>
+  );
 }
 
-export default App
+export default App;

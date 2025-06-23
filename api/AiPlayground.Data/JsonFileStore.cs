@@ -7,18 +7,26 @@ namespace AiPlayground.Data
         protected abstract string FilePath { get; }
 
         public async Task<T> LoadAsync<T>()
+            where T : new()
         {
             if (!File.Exists(FilePath))
             {
-                throw new FileLoadException($"File not found: {FilePath}");
+                await File.Create(FilePath).DisposeAsync();
             }
 
             var json = await File.ReadAllTextAsync(FilePath);
-            var value = JsonSerializer.Deserialize<T>(json);
 
-            return value is null
-                ? throw new InvalidOperationException($"Failed to deserialize data from {FilePath}.")
+            try
+            {
+                var value = JsonSerializer.Deserialize<T>(json);
+                return value is null
+                ? new()
                 : value;
+            }
+            catch (JsonException ex)
+            {
+                return new();
+            }
         }
 
         public async Task SaveAsync<T>(T data)

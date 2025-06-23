@@ -1,0 +1,362 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "AiPlayground.Api | v1",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://localhost:7012/"
+    }
+  ],
+  "paths": {
+    "/Interaction/Interact": {
+      "post": {
+        "tags": [
+          "Interaction"
+        ],
+        "operationId": "Interact",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InteractInputModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InteractInputModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InteractInputModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/Playground/CreateCharacter": {
+      "post": {
+        "tags": [
+          "Playground"
+        ],
+        "operationId": "CreateCharacter",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCharacterInputModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCharacterInputModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCharacterInputModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Playground/GetPlaygroundSetup": {
+      "get": {
+        "tags": [
+          "Playground"
+        ],
+        "operationId": "GetPlaygroundSetup",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaygroundSetupResponseModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaygroundSetupResponseModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaygroundSetupResponseModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CharacterDto": {
+        "required": [
+          "id",
+          "createdAt",
+          "connection",
+          "ageInEnvironmentIterations",
+          "colour",
+          "gridPosition"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "connection": {
+            "$ref": "#/components/schemas/ConnectionDto"
+          },
+          "ageInEnvironmentIterations": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "colour": {
+            "type": "string"
+          },
+          "gridPosition": {
+            "$ref": "#/components/schemas/TupleOfintAndint"
+          }
+        }
+      },
+      "ConnectionDto": {
+        "required": [
+          "id",
+          "createdAt",
+          "endpoint",
+          "host",
+          "model",
+          "port",
+          "temperature"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "temperature": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "CreateCharacterInputModel": {
+        "required": [
+          "colour",
+          "grid_position",
+          "model"
+        ],
+        "type": "object",
+        "properties": {
+          "colour": {
+            "type": "string"
+          },
+          "grid_position": {
+            "$ref": "#/components/schemas/TupleOfintAndint"
+          },
+          "model": {
+            "type": "string"
+          }
+        }
+      },
+      "InteractInputModel": {
+        "required": [
+          "character_id"
+        ],
+        "type": "object",
+        "properties": {
+          "character_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "PlaygroundSetupResponseModel": {
+        "required": [
+          "available_models",
+          "characters",
+          "cell_size",
+          "grid_width",
+          "grid_height"
+        ],
+        "type": "object",
+        "properties": {
+          "available_models": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "characters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CharacterDto"
+            }
+          },
+          "cell_size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grid_width": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grid_height": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TupleOfintAndint": {
+        "required": [
+          "item1",
+          "item2"
+        ],
+        "type": "object",
+        "properties": {
+          "item1": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "item2": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Interaction"
+    },
+    {
+      "name": "Playground"
+    }
+  ]
+}

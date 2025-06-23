@@ -18,22 +18,22 @@ public class PlaygroundController(
     [HttpPost(Name = "CreateCharacter")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<CharacterDto> CreateCharacter([FromBody] CreateCharacterInputModel model)
+    public async Task<ActionResult<CharacterDto>> CreateCharacter([FromBody] CreateCharacterInputModel model)
     {
         if (model == null)
         {
             return BadRequest("Input model cannot be null.");
         }
 
-        var response = _playgroundService.CreateCharacter(model);
+        var response = await _playgroundService.CreateCharacter(model);
         return Ok(response);
     }
 
     [HttpGet(Name = "GetPlaygroundSetup")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public ActionResult<PlaygroundSetupResponseModel> GetPlaygroundSetup()
+    public async Task<ActionResult<PlaygroundSetupResponseModel>> GetPlaygroundSetup()
     {
-        var model = _playgroundService.GetSetup();
+        var model = await _playgroundService.GetSetup();
         return Ok(model);
     }
 }

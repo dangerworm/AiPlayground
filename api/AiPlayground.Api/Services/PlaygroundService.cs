@@ -7,13 +7,15 @@ namespace AiPlayground.Api.Services;
 
 public class PlaygroundService(
     CharacterWorkflow characterWorkflow,
-    ConnectionWorkflow connectionWorkflow
+    ConnectionWorkflow connectionWorkflow,
+    PlaygroundWorkflow playgroundWorkflow
 )
 {
     private readonly CharacterWorkflow _characterWorkflow = characterWorkflow ?? throw new ArgumentNullException(nameof(characterWorkflow));
     private readonly ConnectionWorkflow _connectionWorkflow = connectionWorkflow ?? throw new ArgumentNullException(nameof(connectionWorkflow));
+    private readonly PlaygroundWorkflow _playgroundWorkflow = playgroundWorkflow ?? throw new ArgumentNullException(nameof(playgroundWorkflow));
 
-    public async Task<CharacterDto> CreateCharacter(CreateCharacterInputModel characterInput)
+    public async Task<CharacterDto> CreateCharacterAsync(CreateCharacterInputModel characterInput)
     {
         var connection = _connectionWorkflow.CreateConnection(characterInput.Model);
         var character = await _characterWorkflow.CreateCharacterAsync(characterInput.Colour, connection, characterInput.GridPosition);
@@ -23,7 +25,7 @@ public class PlaygroundService(
             : character;
     }
 
-    public async Task<PlaygroundSetupResponseModel> GetSetup()
+    public async Task<PlaygroundSetupResponseModel> GetSetupAsync()
     {
         var model = new PlaygroundSetupResponseModel
         {
@@ -35,5 +37,10 @@ public class PlaygroundService(
         };
 
         return model;
+    }
+
+    public async Task UpdatePlaygroundIterationsAsync()
+    {
+        await _playgroundWorkflow.UpdateIterationsAsync();
     }
 }

@@ -9,9 +9,9 @@ public static class ServiceCollectionExtensions
     {
         services
             .AddScoped<CharacterRepository>()
-            .AddScoped<EnvironmentRepository>()
             .AddScoped<MemoryRepository>()
-            .AddScoped<ModelRepository>();
+            .AddScoped<ModelRepository>()
+            .AddScoped<PlaygroundRepository>();
 
         return services;
     }

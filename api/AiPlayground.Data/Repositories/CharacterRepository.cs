@@ -7,7 +7,7 @@ public class CharacterRepository : JsonFileStore
 {
     protected override string FilePath => "Characters.json";
 
-    public async Task<CharacterEntity> CreateCharacter(string colour, ConnectionDto connectionDto, Tuple<int, int> gridPosition)
+    public async Task<CharacterEntity> CreateCharacterAsync(int createdInIteration, string colour, ConnectionDto connectionDto, Tuple<int, int> gridPosition)
     {
         var connection = new ConnectionEntity
         {
@@ -21,7 +21,8 @@ public class CharacterRepository : JsonFileStore
 
         var character = new CharacterEntity
         {
-            AgeInEnvironmentIterations = 0,
+            AgeInIterations = 0,
+            CreatedInIteration = createdInIteration,
             Colour = colour,
             Connection = connection,
             GridPosition = gridPosition
@@ -48,13 +49,13 @@ public class CharacterRepository : JsonFileStore
                ?? throw new KeyNotFoundException($"Character with ID {id} not found.");
     }
 
-    public async Task<CharacterEntity> UpdateCharacterAgeById(Guid id)
+    public async Task<CharacterEntity> UpdateCharacterAgeByIdAsync(Guid id)
     {
         var characters = await GetCharactersAsync();
         var character = characters?.FirstOrDefault(c => c.Id == id)
                ?? throw new KeyNotFoundException($"Character with ID {id} not found.");
 
-        character.AgeInEnvironmentIterations += 1;
+        character.AgeInIterations += 1;
 
         await SaveAsync(characters);
         

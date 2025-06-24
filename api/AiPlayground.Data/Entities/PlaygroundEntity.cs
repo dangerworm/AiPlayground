@@ -2,17 +2,17 @@
 
 namespace AiPlayground.Data.Entities;
 
-public class EnvironmentEntity
+public class PlaygroundEntity
 {
     public int Iterations { get; set; }
 
-    public EnvironmentEntity()
+    public PlaygroundEntity()
     {
         Iterations = 0;
     }
 
-    public EnvironmentDto AsDto()
+    public PlaygroundDto AsDto()
     {
-        return new EnvironmentDto(Iterations);
+        return new PlaygroundDto(Iterations);
     }
 }

@@ -9,17 +9,19 @@ public class InteractionService(
     IHttpClientFactory httpClientFactory,
     ILogger<InteractionService> logger,
     CharacterWorkflow characterWorkflow,
-    EnvironmentWorkflow environmentWorkflow,
+    CharacterEnvironmentWorkflow characterEnvironmentWorkflow,
+    PlaygroundWorkflow playgroundWorkflow,
     PromptWorkflow promptWorkflow
 )
 {
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
     private readonly ILogger<InteractionService> _logger = logger;
     private readonly CharacterWorkflow _characterWorkflow = characterWorkflow ?? throw new ArgumentNullException(nameof(characterWorkflow));
-    private readonly EnvironmentWorkflow _environmentWorkflow = environmentWorkflow ?? throw new ArgumentNullException(nameof(environmentWorkflow));
+    private readonly CharacterEnvironmentWorkflow _characterEnvironmentWorkflow = characterEnvironmentWorkflow ?? throw new ArgumentNullException(nameof(characterEnvironmentWorkflow));
+    private readonly PlaygroundWorkflow _playgroundWorkflow = playgroundWorkflow ?? throw new ArgumentNullException(nameof(playgroundWorkflow));
     private readonly PromptWorkflow _promptWorkflow = promptWorkflow ?? throw new ArgumentNullException(nameof(promptWorkflow));
 
-    public async Task<string> ContactLlm(InteractInputModel characterInput)
+    public async Task<string> ContactLlmAsync(InteractInputModel characterInput)
     {
         var character = await _characterWorkflow.GetCharacterByIdAsync(characterInput.CharacterId);
         if (character is null)
@@ -28,7 +30,7 @@ public class InteractionService(
             throw new ArgumentException($"Character with ID '{characterInput.CharacterId}' not found.");
         }
 
-        var chatModel = await BuildChatModel(character);
+        var chatModel = await BuildChatModelAsync(character);
         var client = BuildClient(character.Connection);
         
         var response = await client.PostAsJsonAsync(character.Connection.Endpoint, chatModel);
@@ -38,10 +40,10 @@ public class InteractionService(
         return await response.Content.ReadAsStringAsync();
     }
 
-    public async Task<ChatModel> BuildChatModel(CharacterDto character)
+    public async Task<ChatModel> BuildChatModelAsync(CharacterDto character)
     {
         var systemPrompt = _promptWorkflow.GetSystemPrompt();
-        var output = await _environmentWorkflow.BuildEnvironmentOutput(character.Id);
+        var output = await _characterEnvironmentWorkflow.BuildEnvironmentOutputAsync(character.Id);
 
         var messages = new Dictionary<string, MessageModel>
         {

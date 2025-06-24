@@ -17,7 +17,8 @@ export type Character = {
   id: string;
   createdAt: string;
   connection: Connection;
-  ageInEnvironmentIterations: number;
+  ageInIterations: number;
+  createdInIteration: number;
   colour: string;
   gridPosition: GridPosition;
 };

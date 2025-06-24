@@ -6,7 +6,8 @@ public class CharacterDto
         Guid id,
         DateTime createdAt,
         ConnectionDto connection,
-        int ageInEnvironmentIterations,
+        int ageInIterations,
+        int createdInIteration,
         string colour,
         Tuple<int, int> gridPosition
     )
@@ -14,7 +15,8 @@ public class CharacterDto
         Id = id;
         CreatedAt = createdAt;
         Connection = connection;
-        AgeInEnvironmentIterations = ageInEnvironmentIterations;
+        AgeInIterations = ageInIterations;
+        CreatedInIteration = createdInIteration;
         Colour = colour;
         GridPosition = gridPosition;
     }
@@ -22,7 +24,8 @@ public class CharacterDto
     public Guid Id { get; }
     public DateTime CreatedAt { get; }
     public ConnectionDto Connection { get; }
-    public int AgeInEnvironmentIterations { get; }
+    public int AgeInIterations { get; }
+    public int CreatedInIteration { get; }
     public string Colour { get; }
     public Tuple<int, int> GridPosition { get; }
 }

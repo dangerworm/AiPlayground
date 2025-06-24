@@ -2,7 +2,7 @@
 
 namespace AiPlayground.Api.Models.Conversations
 {
-    public class EnvironmentOutputModel
+    public class CharacterEnvironmentOutputModel
     {
         [JsonPropertyName("action_results")]
         public IDictionary<string, string> ActionResults { get; set; } = new Dictionary<string, string>();

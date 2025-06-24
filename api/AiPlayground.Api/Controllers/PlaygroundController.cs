@@ -25,7 +25,7 @@ public class PlaygroundController(
             return BadRequest("Input model cannot be null.");
         }
 
-        var response = await _playgroundService.CreateCharacter(model);
+        var response = await _playgroundService.CreateCharacterAsync(model);
         return Ok(response);
     }
 
@@ -33,7 +33,7 @@ public class PlaygroundController(
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<PlaygroundSetupResponseModel>> GetPlaygroundSetup()
     {
-        var model = await _playgroundService.GetSetup();
+        var model = await _playgroundService.GetSetupAsync();
         return Ok(model);
     }
 }

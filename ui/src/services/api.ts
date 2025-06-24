@@ -21,6 +21,6 @@ export const createCharacter = async (input: CreateCharacterInput): Promise<Char
 };
 
 export const interactWithCharacter = async (input: InteractInput): Promise<string> => {
-  const response = await api.get<string>('/Interaction/Interact', { data: input });
+  const response = await api.post<string>('/Interaction/Interact', input);
   return response.data;
 }; 

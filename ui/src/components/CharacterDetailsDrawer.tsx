@@ -51,7 +51,7 @@ export const CharacterDetailsDrawer = ({
           <ListItem>
             <ListItemText
               primary="Age (Iterations)"
-              secondary={character.ageInEnvironmentIterations}
+              secondary={character.ageInIterations}
             />
           </ListItem>
           <ListItem>

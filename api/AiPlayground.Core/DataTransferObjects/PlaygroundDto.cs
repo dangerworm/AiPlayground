@@ -1,8 +1,8 @@
 ﻿namespace AiPlayground.Core.DataTransferObjects;
 
-public class EnvironmentDto
+public class PlaygroundDto
 {
-    public EnvironmentDto(int iterations)
+    public PlaygroundDto(int iterations)
     {
         Iterations = iterations;
     }

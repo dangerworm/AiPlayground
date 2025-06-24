@@ -16,9 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Config\FirstMessage.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="Config\SystemPrompt.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

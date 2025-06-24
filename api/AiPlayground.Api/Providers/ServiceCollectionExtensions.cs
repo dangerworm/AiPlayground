@@ -1,9 +1,20 @@
-﻿namespace AiPlayground.Api.Providers;
+﻿using AiPlayground.Api.Actions;
+
+namespace AiPlayground.Api.Providers;
 
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddProviders(this IServiceCollection services)
     {
+        var actionTypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => typeof(IAction).IsAssignableFrom(type) && !type.IsAbstract && !type.IsInterface);
+
+        foreach (var type in actionTypes)
+        {
+            services.AddTransient(type);
+        }
+
         services
             .AddScoped<ActionProvider>();
 

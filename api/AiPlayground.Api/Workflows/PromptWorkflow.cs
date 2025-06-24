@@ -9,7 +9,6 @@ public class PromptWorkflow(
 ) : WorkflowBase(logger)
 {
     private const string SystemPromptFileName = "SystemPrompt.txt";
-    private const string FirstMessageFileName = "FirstMessage.txt";
 
     private readonly ActionProvider _actionWorkflow = actionWorkflow ?? throw new ArgumentNullException(nameof(actionWorkflow));
 
@@ -18,17 +17,12 @@ public class PromptWorkflow(
         var builder = new StringBuilder();
 
         var systemPrompt = ReadConfigFile(SystemPromptFileName);
-        var actions = _actionWorkflow.GetAvailableActions();
+        var actions = _actionWorkflow.GetActionDescriptions();
 
         builder.AppendLine(systemPrompt);
         builder.AppendLine(actions);
 
         return builder.ToString();
-    }
-
-    public string GetFirstMessage()
-    {
-        return ReadConfigFile(FirstMessageFileName);
     }
 
     private string ReadConfigFile(string fileName)

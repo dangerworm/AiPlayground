@@ -1,9 +1,11 @@
-﻿namespace AiPlayground.Data.Repositories;
+﻿using AiPlayground.Core.Constants;
+
+namespace AiPlayground.Data.Repositories;
 
 public class ModelRepository
 {
-    public IEnumerable<string> GetModels()
+    public IList<string> GetModels()
     {
-        return Constants.AvailableModels;
+        return PlaygroundConstants.AvailableModels;
     }
 }

@@ -1,7 +1,7 @@
-﻿using AiPlayground.Api.Constants;
-using AiPlayground.Api.Models.Playground;
+﻿using AiPlayground.Api.Models.Playground;
+using AiPlayground.Api.ViewModels;
 using AiPlayground.Api.Workflows;
-using AiPlayground.Core.DataTransferObjects;
+using AiPlayground.Core.Constants;
 
 namespace AiPlayground.Api.Services;
 
@@ -15,22 +15,24 @@ public class PlaygroundService(
     private readonly ConnectionWorkflow _connectionWorkflow = connectionWorkflow ?? throw new ArgumentNullException(nameof(connectionWorkflow));
     private readonly PlaygroundWorkflow _playgroundWorkflow = playgroundWorkflow ?? throw new ArgumentNullException(nameof(playgroundWorkflow));
 
-    public async Task<CharacterDto> CreateCharacterAsync(CreateCharacterInputModel characterInput)
+    public async Task<CharacterViewModel> CreateCharacterAsync(CreateCharacterInputModel characterInput)
     {
         var connection = _connectionWorkflow.CreateConnection(characterInput.Model);
         var character = await _characterWorkflow.CreateCharacterAsync(characterInput.Colour, connection, characterInput.GridPosition);
         
         return character is null 
             ? throw new InvalidOperationException("Failed to create character.") 
-            : character;
+            : new CharacterViewModel(character);
     }
 
-    public async Task<PlaygroundSetupResponseModel> GetSetupAsync()
+    public async Task<PlaygroundSetupResponseViewModel> GetSetupAsync()
     {
-        var model = new PlaygroundSetupResponseModel
+        var characters = await _characterWorkflow.GetCharactersAsync();
+        
+        var model = new PlaygroundSetupResponseViewModel
         {
-            AvailableModels = _characterWorkflow.GetAvailableModels(),
-            Characters = await _characterWorkflow.GetCharactersAsync(),
+            AvailableModels = _characterWorkflow.GetAvailableModels().ToList(),
+            Characters = characters.Select(c => new CharacterViewModel(c)).ToList(),
             CellSize = PlaygroundConstants.DefaultCellSizePixels,
             GridWidth = PlaygroundConstants.DefaultGridSize,
             GridHeight = PlaygroundConstants.DefaultGridSize

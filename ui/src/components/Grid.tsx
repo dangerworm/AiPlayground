@@ -56,7 +56,7 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
   // Check if a position is occupied by a character
   const isPositionOccupied = (x: number, y: number) => {
     return setup.characters.some(
-      char => char.gridPosition.item1 === x && char.gridPosition.item2 === y
+      char => char.grid_position.item1 === x && char.grid_position.item2 === y
     );
   };
 
@@ -144,9 +144,9 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
         <mesh
           key={character.id}
           position={[
-            character.gridPosition.item1 * setup.cell_size + setup.cell_size / 2,
+            character.grid_position.item1 * setup.cell_size + setup.cell_size / 2,
             setup.cell_size / 2,
-            character.gridPosition.item2 * setup.cell_size + setup.cell_size / 2
+            character.grid_position.item2 * setup.cell_size + setup.cell_size / 2
           ]}
           onClick={() => onCharacterClick(character)}
         >

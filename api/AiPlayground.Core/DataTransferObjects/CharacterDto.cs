@@ -9,7 +9,9 @@ public class CharacterDto
         int ageInIterations,
         int createdInIteration,
         string colour,
-        Tuple<int, int> gridPosition
+        Tuple<int, int> gridPosition,
+        IList<CharacterResponseDto> responses,
+        IList<string> questions
     )
     {
         Id = id;
@@ -19,6 +21,8 @@ public class CharacterDto
         CreatedInIteration = createdInIteration;
         Colour = colour;
         GridPosition = gridPosition;
+        Responses = responses;
+        Questions = questions;
     }
 
     public Guid Id { get; }
@@ -28,4 +32,6 @@ public class CharacterDto
     public int CreatedInIteration { get; }
     public string Colour { get; }
     public Tuple<int, int> GridPosition { get; }
+    public IList<CharacterResponseDto> Responses { get; }
+    public IList<string> Questions { get; }
 }

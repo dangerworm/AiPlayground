@@ -18,6 +18,7 @@ public class ConnectionDto
         Host = host;
         Model = model;
         Port = port;
+        Temperature = temperature;
     }
 
     public Guid Id { get; }

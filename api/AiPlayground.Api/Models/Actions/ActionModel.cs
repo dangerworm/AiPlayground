@@ -11,11 +11,11 @@ public class ActionModel
     public required string Description { get; set; }
 
     [JsonPropertyName("input_parameters")]
-    public IEnumerable<ActionInputParameterModel>? InputParameters { get; set; }
+    public IList<ActionInputParameterModel>? InputParameters { get; set; }
 
     public override string ToString()
     {
-        return $"{ActionName}({GetParameterNamesAndTypes()}), {Description}{GetUsageExample()}";
+        return $"{ActionName}({GetParameterNamesAndTypes()}): {Description}{GetUsageExample()}";
     }
 
     private string GetParameterNamesAndTypes()
@@ -42,7 +42,7 @@ public class ActionModel
             nameof(DateTime)
         };
 
-        var exampleValues = InputParameters.Select(p => quotedTypes.Contains(p.Type) ? $"\"{p.ExampleValue}\"" : p.ExampleValue);
+        var exampleValues = InputParameters.Select(p => p.ExampleValue);
         return $" e.g. {ActionName}({string.Join(", ", exampleValues)})";
     }
 }

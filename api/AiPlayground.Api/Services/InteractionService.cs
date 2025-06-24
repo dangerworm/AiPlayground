@@ -2,72 +2,60 @@
 using System.Text.Json.Serialization;
 using AiPlayground.Api.Models.Conversations;
 using AiPlayground.Api.Models.Interactions;
+using AiPlayground.Api.ViewModels;
 using AiPlayground.Api.Workflows;
 using AiPlayground.Core.DataTransferObjects;
 
 namespace AiPlayground.Api.Services;
 
 public class InteractionService(
-    IHttpClientFactory httpClientFactory,
     ILogger<InteractionService> logger,
+    IHttpClientFactory httpClientFactory,
     CharacterWorkflow characterWorkflow,
     CharacterEnvironmentWorkflow characterEnvironmentWorkflow,
-    PlaygroundWorkflow playgroundWorkflow,
     PromptWorkflow promptWorkflow
 )
 {
+    private readonly ILogger<InteractionService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-    private readonly ILogger<InteractionService> _logger = logger;
     private readonly CharacterWorkflow _characterWorkflow = characterWorkflow ?? throw new ArgumentNullException(nameof(characterWorkflow));
     private readonly CharacterEnvironmentWorkflow _characterEnvironmentWorkflow = characterEnvironmentWorkflow ?? throw new ArgumentNullException(nameof(characterEnvironmentWorkflow));
-    private readonly PlaygroundWorkflow _playgroundWorkflow = playgroundWorkflow ?? throw new ArgumentNullException(nameof(playgroundWorkflow));
     private readonly PromptWorkflow _promptWorkflow = promptWorkflow ?? throw new ArgumentNullException(nameof(promptWorkflow));
 
-    public async Task<MessageModel> ContactLlmAsync(InteractInputModel characterInput)
+    public async Task<CharacterViewModel> ProcessInteraction(InteractInputModel model)
     {
-        var character = await _characterWorkflow.GetCharacterByIdAsync(characterInput.CharacterId);
-        if (character is null)
-        {
-            _logger.LogError("Character with ID '{Id}' not found.", characterInput.CharacterId);
-            throw new ArgumentException($"Character with ID '{characterInput.CharacterId}' not found.");
-        }
-
-        var chatModel = await BuildChatModelAsync(character);
+        var character = await _characterWorkflow.GetCharacterByIdAsync(model.CharacterId);
         var client = BuildClient(character.Connection);
+        var chatModel = await BuildChatModelAsync(character);
 
         var response = await client.PostAsJsonAsync(character.Connection.Endpoint, chatModel);
 
         _logger.LogInformation("Generated output for character with ID '{Id}': {Response}", character.Id, response);
 
         var responseJson = await response.Content.ReadAsStringAsync();
-        return ParseOllamaResponse(responseJson, character);
+        var characterResponse = ParseLlmResponse(responseJson, character);
+
+        character = await _characterWorkflow.AddMessageAsync(character.Id, characterResponse);
+
+        return new CharacterViewModel(character);
     }
 
     public async Task<OllamaInputModel> BuildChatModelAsync(CharacterDto character)
     {
-        var systemPrompt = _promptWorkflow.GetFirstMessage();
-        var output = await _characterEnvironmentWorkflow.BuildEnvironmentOutputAsync(character.Id);
+        var systemPrompt = _promptWorkflow.GetSystemPrompt();
 
         var messages = new List<MessageModel>
         {
-            { new MessageModel { Role = "system", Content = systemPrompt } },
-            { new MessageModel { Role = "user", Content = output } }
+            new MessageModel { Role = "system", Content = systemPrompt }
         };
 
-        /* Will need previous content at some point
-         * 
-    [JsonPropertyName("decisions")]
-    public string[] Decisions { get; set; } = [];
+        foreach(var response in character.Responses)
+        {
+            messages.Add(new MessageModel { Role = "assistant", Content = JsonSerializer.Serialize(response) });
+        }
 
-    [JsonPropertyName("desires")]
-    public string[] Desires { get; set; } = [];
-
-    [JsonPropertyName("emotion")]
-    public string Emotion { get; set; } = string.Empty;
-
-    [JsonPropertyName("thoughts")]
-    public string Thoughts { get; set; } = string.Empty;
-        */
+        var output = await _characterEnvironmentWorkflow.BuildEnvironmentOutputAsync(character.Id);
+        messages.Add(new MessageModel { Role = "user", Content = output });
 
         return new OllamaInputModel
         {
@@ -89,7 +77,7 @@ public class InteractionService(
         return client;
     }
 
-    private MessageModel ParseOllamaResponse(string responseJson, CharacterDto character)
+    private CharacterResponseModel ParseLlmResponse(string responseJson, CharacterDto character)
     {
         try
         {
@@ -100,7 +88,14 @@ public class InteractionService(
                 throw new InvalidOperationException($"Deserialized message is null for character ID '{character.Id}'.");
             }
 
-            return message;
+            var response = JsonSerializer.Deserialize<CharacterResponseModel>(message.Content.Trim());
+            if (response is null)
+            {
+                _logger.LogError(responseJson, "Deserialized response is null for character ID '{Id}': {Response}", character.Id, responseJson);
+                throw new InvalidOperationException($"Deserialized response is null for character ID '{character.Id}'.");
+            }
+
+            return response;
         }
         catch (JsonException ex)
         {

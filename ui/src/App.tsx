@@ -65,6 +65,18 @@ function App() {
   const handleInteract = async (characterId: string) => {
     try {
       const response = await interactWithCharacter({ character_id: characterId });
+      
+      // Refresh the playground setup to get updated character data
+      const updatedSetup = await getPlaygroundSetup();
+      setSetup(updatedSetup);
+      
+      // Update the selected character with the new data
+      const updatedCharacter = updatedSetup.characters.find(c => c.id === characterId);
+      if (updatedCharacter) {
+        setSelectedCharacter(updatedCharacter);
+      }
+
+      // Update chat history
       setChatHistory((prev) => ({
         ...prev,
         [characterId]: [...(prev[characterId] || []), response]
@@ -115,7 +127,7 @@ function App() {
         <Typography variant="body1" color="text.secondary">
           {setup.characters.length === 0 
             ? "Welcome! Create your first AI character by clicking the '+' button below or clicking any empty cell on the grid. Each character will appear on the grid and you can interact with them in real-time."
-            : `${setup.characters.length} character${setup.characters.length === 1 ? '' : 's'} in the playground. Click on any character to interact with them.`
+            : `${setup.characters.length} character${setup.characters.length === 1 ? '' : 's'} in the playground. Click on any character to view them.`
           }
         </Typography>
       </Paper>
@@ -151,7 +163,6 @@ function App() {
         open={!!selectedCharacter}
         onClose={() => setSelectedCharacter(null)}
         character={selectedCharacter}
-        chatHistory={selectedCharacter ? chatHistory[selectedCharacter.id] || [] : []}
         onInteract={handleInteract}
       />
     </Box>

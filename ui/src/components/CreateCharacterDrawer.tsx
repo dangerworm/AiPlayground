@@ -54,6 +54,13 @@ export const CreateCharacterDrawer = ({
     model: setup.available_models?.[0] ?? '',
   });
 
+  // Check if a position is occupied by a character
+  const isPositionOccupied = (x: number, y: number) => {
+    return setup.characters.some(
+      char => char.grid_position.item1 === x && char.grid_position.item2 === y
+    );
+  };
+
   // Update form data when initialPosition changes
   useEffect(() => {
     if (initialPosition) {
@@ -66,6 +73,12 @@ export const CreateCharacterDrawer = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if the position is occupied before submitting
+    if (isPositionOccupied(formData.grid_position.item1, formData.grid_position.item2)) {
+      return;
+    }
+
     await onSubmit(formData);
     onClose();
   };
@@ -98,6 +111,9 @@ export const CreateCharacterDrawer = ({
       </Drawer>
     );
   }
+
+  // Check if the current position is occupied
+  const isCurrentPositionOccupied = isPositionOccupied(formData.grid_position.item1, formData.grid_position.item2);
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
@@ -194,6 +210,7 @@ export const CreateCharacterDrawer = ({
                     min: 0,
                     max: setup.grid_width - 1,
                   }}
+                  error={isCurrentPositionOccupied}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -207,9 +224,15 @@ export const CreateCharacterDrawer = ({
                     min: 0,
                     max: setup.grid_height - 1,
                   }}
+                  error={isCurrentPositionOccupied}
                 />
               </Grid>
             </Grid>
+            {isCurrentPositionOccupied && (
+              <Typography color="error" variant="caption" sx={{ display: 'block', mt: 1 }}>
+                This position is already occupied by another character
+              </Typography>
+            )}
           </Grid>
 
           {/* Model Selection */}
@@ -261,6 +284,7 @@ export const CreateCharacterDrawer = ({
             color="primary"
             type="submit"
             size="large"
+            disabled={isCurrentPositionOccupied}
           >
             Create Character
           </Button>

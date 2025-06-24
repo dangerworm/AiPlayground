@@ -1,13 +1,11 @@
 import {
-  Drawer,
   Box,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
   Button,
+  Drawer,
+  Typography,
   Divider,
-  Paper,
+  Stack,
+  Chip,
 } from '@mui/material';
 import { Character } from '../types/api';
 
@@ -15,7 +13,6 @@ type CharacterDetailsDrawerProps = {
   open: boolean;
   onClose: () => void;
   character: Character | null;
-  chatHistory: string[];
   onInteract: (characterId: string) => Promise<void>;
 };
 
@@ -23,104 +20,172 @@ export const CharacterDetailsDrawer = ({
   open,
   onClose,
   character,
-  chatHistory,
   onInteract,
 }: CharacterDetailsDrawerProps) => {
   if (!character) return null;
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
-      <Box sx={{ width: 400, p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Character Details
-        </Typography>
-
-        <List>
-          <ListItem>
-            <ListItemText
-              primary="ID"
-              secondary={character.id}
-            />
-          </ListItem>
-          <ListItem>
-            <ListItemText
-              primary="Created At"
-              secondary={new Date(character.createdAt).toLocaleString()}
-            />
-          </ListItem>
-          <ListItem>
-            <ListItemText
-              primary="Age (Iterations)"
-              secondary={character.ageInIterations}
-            />
-          </ListItem>
-          <ListItem>
-            <ListItemText
-              primary="Model"
-              secondary={character.connection.model}
-            />
-          </ListItem>
-          <ListItem>
-            <Box
-              component="div"
-              sx={{
-                width: 20,
-                height: 20,
-                backgroundColor: character.colour,
-                borderRadius: '50%',
-                mr: 2,
-              }}
-            />
-            <ListItemText
-              primary="Color"
-              secondary={character.colour}
-            />
-          </ListItem>
-          <ListItem>
-            <ListItemText
-              primary="Position"
-              secondary={`(${character.gridPosition.item1}, ${character.gridPosition.item2})`}
-            />
-          </ListItem>
-        </List>
-
-        <Divider sx={{ my: 2 }} />
-
-        <Box sx={{ mb: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={() => onInteract(character.id)}
-          >
-            Interact
-          </Button>
+      <Box sx={{ width: 400, p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* Header with color circle */}
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Box
+            component="div"
+            sx={{
+              width: 20,
+              height: 20,
+              backgroundColor: character.colour,
+              borderRadius: '50%',
+              mr: 2,
+            }}
+          />
+          <Typography variant="h6">
+            Character Details
+          </Typography>
         </Box>
 
-        <Typography variant="h6" gutterBottom>
-          Chat History
-        </Typography>
+        {/* Metadata section */}
+        <Stack spacing={0.5} sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            ID: {character.id}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Created: {new Date(character.created_at).toLocaleString()}
+          </Typography>
 
-        <Paper
-          sx={{
-            maxHeight: 300,
-            overflow: 'auto',
-            p: 2,
-            backgroundColor: '#f5f5f5',
-          }}
-        >
-          {chatHistory.length === 0 ? (
-            <Typography color="textSecondary">
-              No chat history available
+          <Typography variant="body1">
+            Age: {character.age} iterations
+          </Typography>
+          <Typography variant="body1">
+            Position: ({character.grid_position.item1}, {character.grid_position.item2})
+          </Typography>
+          <Typography variant="body1">
+            Model: {character.model}
+          </Typography>
+        </Stack>
+
+        <Divider sx={{ my: 1 }} />
+
+        {/* Questions section - only shown when there are questions */}
+        {character.questions?.length > 0 && (
+          <>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Questions
+              </Typography>
+              <Stack spacing={1}>
+                {character.questions.map((question, index) => (
+                  <Typography
+                    key={index}
+                    variant="body2"
+                    sx={{
+                      backgroundColor: 'action.hover',
+                      p: 1,
+                      borderRadius: 1,
+                    }}
+                  >
+                    {question}
+                  </Typography>
+                ))}
+              </Stack>
+            </Box>
+
+            <Divider sx={{ my: 1 }} />
+          </>
+        )}
+
+        {/* Responses section */}
+        <Box sx={{ flexGrow: 1, overflow: 'auto', mt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Responses
+          </Typography>
+          {character.responses.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No responses yet.
             </Typography>
           ) : (
-            chatHistory.map((message, index) => (
-              <Typography key={index} paragraph>
-                {message}
-              </Typography>
-            ))
+            <Stack spacing={2}>
+              {character.responses.map((response, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    backgroundColor: 'background.paper',
+                    p: 2,
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  {/* Emotion - only show if not null */}
+                  {response.emotion && (
+                    <Box sx={{ mb: 1 }}>
+                      <Chip 
+                        label={`Feeling: ${response.emotion}`}
+                        size="small"
+                        sx={{ mb: 1 }}
+                      />
+                    </Box>
+                  )}
+
+                  {/* Thoughts - only show if not null */}
+                  {response.thoughts && (
+                    <Typography variant="body2" sx={{ mb: 1.5 }}>
+                      {response.thoughts}
+                    </Typography>
+                  )}
+
+                  {/* Desires */}
+                  {response.desires && response.desires.length > 0 && (
+                    <Box sx={{ mb: 1.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                        Desires:
+                      </Typography>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {response.desires.map((desire, i) => (
+                          <Chip
+                            key={i}
+                            label={desire}
+                            size="small"
+                            variant="outlined"
+                            sx={{ mb: 0.5 }}
+                          />
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
+
+                  {/* Decisions */}
+                  {response.decisions && response.decisions.length > 0 && (
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                        Decisions:
+                      </Typography>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {response.decisions.map((decision, i) => (
+                          <Chip
+                            key={i}
+                            label={decision}
+                            size="small"
+                            variant="outlined"
+                            sx={{ mb: 0.5 }}
+                          />
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
+                </Box>
+              ))}
+            </Stack>
           )}
-        </Paper>
+        </Box>
+
+        <Button
+          variant="contained"
+          onClick={() => onInteract(character.id)}
+          sx={{ mt: 2 }}
+        >
+          Interact
+        </Button>
       </Box>
     </Drawer>
   );

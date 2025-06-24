@@ -42,17 +42,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/CharacterViewModel"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/CharacterViewModel"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/CharacterViewModel"
                 }
               }
             }
@@ -95,17 +95,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CharacterDto"
+                  "$ref": "#/components/schemas/CharacterViewModel"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CharacterDto"
+                  "$ref": "#/components/schemas/CharacterViewModel"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CharacterDto"
+                  "$ref": "#/components/schemas/CharacterViewModel"
                 }
               }
             }
@@ -145,17 +145,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlaygroundSetupResponseModel"
+                  "$ref": "#/components/schemas/PlaygroundSetupResponseViewModel"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlaygroundSetupResponseModel"
+                  "$ref": "#/components/schemas/PlaygroundSetupResponseViewModel"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlaygroundSetupResponseModel"
+                  "$ref": "#/components/schemas/PlaygroundSetupResponseViewModel"
                 }
               }
             }
@@ -166,76 +166,68 @@
   },
   "components": {
     "schemas": {
-      "CharacterDto": {
-        "required": [
-          "id",
-          "createdAt",
-          "connection",
-          "ageInEnvironmentIterations",
-          "colour",
-          "gridPosition"
-        ],
+      "CharacterResponseViewModel": {
+        "type": "object",
+        "properties": {
+          "decisions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "desires": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "emotion": {
+            "type": "string"
+          },
+          "thoughts": {
+            "type": "string"
+          }
+        }
+      },
+      "CharacterViewModel": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid"
           },
-          "createdAt": {
+          "created_at": {
             "type": "string",
             "format": "date-time"
           },
-          "connection": {
-            "$ref": "#/components/schemas/ConnectionDto"
-          },
-          "ageInEnvironmentIterations": {
+          "age": {
             "type": "integer",
             "format": "int32"
           },
           "colour": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
-          "gridPosition": {
+          "grid_position": {
             "$ref": "#/components/schemas/TupleOfintAndint"
-          }
-        }
-      },
-      "ConnectionDto": {
-        "required": [
-          "id",
-          "createdAt",
-          "endpoint",
-          "host",
-          "model",
-          "port",
-          "temperature"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endpoint": {
-            "type": "string"
-          },
-          "host": {
-            "type": "string"
           },
           "model": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
-          "port": {
-            "type": "integer",
-            "format": "int32"
+          "responses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CharacterResponseViewModel"
+            },
+            "nullable": true
           },
-          "temperature": {
-            "type": "number",
-            "format": "double"
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
         }
       },
@@ -251,7 +243,7 @@
             "type": "string"
           },
           "grid_position": {
-            "$ref": "#/components/schemas/TupleOfintAndint"
+            "$ref": "#/components/schemas/TupleOfintAndint2"
           },
           "model": {
             "type": "string"
@@ -270,7 +262,7 @@
           }
         }
       },
-      "PlaygroundSetupResponseModel": {
+      "PlaygroundSetupResponseViewModel": {
         "required": [
           "available_models",
           "characters",
@@ -289,7 +281,7 @@
           "characters": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CharacterDto"
+              "$ref": "#/components/schemas/CharacterViewModel"
             }
           },
           "cell_size": {
@@ -333,6 +325,24 @@
         }
       },
       "TupleOfintAndint": {
+        "required": [
+          "item1",
+          "item2"
+        ],
+        "type": "object",
+        "properties": {
+          "item1": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "item2": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "nullable": true
+      },
+      "TupleOfintAndint2": {
         "required": [
           "item1",
           "item2"

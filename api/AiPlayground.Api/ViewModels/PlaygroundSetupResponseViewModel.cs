@@ -1,15 +1,14 @@
 ﻿using System.Text.Json.Serialization;
-using AiPlayground.Core.DataTransferObjects;
 
-namespace AiPlayground.Api.Models.Playground
+namespace AiPlayground.Api.ViewModels
 {
-    public class PlaygroundSetupResponseModel
+    public class PlaygroundSetupResponseViewModel
     {
         [JsonPropertyName("available_models")]
-        public required IEnumerable<string> AvailableModels { get; set; }
+        public required IList<string> AvailableModels { get; set; }
 
         [JsonPropertyName("characters")]
-        public required IEnumerable<CharacterDto> Characters { get; set; }
+        public required IList<CharacterViewModel> Characters { get; set; }
 
         [JsonPropertyName("cell_size")]
         public required int CellSize { get; set; }

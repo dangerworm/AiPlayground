@@ -17,9 +17,9 @@ public class CharacterEnvironmentWorkflow
     public async Task<string> BuildEnvironmentOutputAsync(Guid characterId)
     {
         var character = await _characterRepository.GetCharacterByIdAsync(characterId);
-        var actionResults = new Dictionary<string, string>();
+        var actionResults = new List<CharacterActionModel>();
         var environment = await _playgroundRepository.GetPlaygroundAsync();
-        var sound = new Dictionary<string, EnvironmentSoundModel>();
+        var sounds = new List<EnvironmentSoundModel>();
 
         var output = new CharacterEnvironmentOutputModel
         {
@@ -28,7 +28,7 @@ public class CharacterEnvironmentWorkflow
             GridPosition = $"[{character.GridPosition.Item1},{character.GridPosition.Item2}]",
             Environment = await DescribeCharacterEnvironmentAsync(characterId),
             Iteration = environment.Iterations,
-            Sound = sound
+            Sounds = sounds
         };
 
         return JsonSerializer.Serialize(output, JsonOptions);

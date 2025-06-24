@@ -11,9 +11,21 @@ public class CharacterEntity
     public required int CreatedInIteration { get; set; }
     public required string Colour { get; set; }
     public required Tuple<int, int> GridPosition { get; set; } = new Tuple<int, int>(0, 0);
+    public required IList<CharacterResponseEntity> Responses { get; set; }
+    public required IList<string> Questions { get; set; }
 
     public CharacterDto AsDto()
     {
-        return new CharacterDto(Id, CreatedAt, Connection.AsDto(), AgeInIterations, CreatedInIteration, Colour, GridPosition);
+        return new CharacterDto(
+            Id, 
+            CreatedAt, 
+            Connection.AsDto(), 
+            AgeInIterations, 
+            CreatedInIteration, 
+            Colour, 
+            GridPosition,
+            [.. Responses.Select(r => r.AsDto())],
+            Questions
+        );
     }
 }

@@ -1,7 +1,6 @@
-﻿namespace AiPlayground.Api.Actions
+﻿namespace AiPlayground.Api.Actions;
+
+public abstract class ActionBase
 {
-    public abstract class ActionBase
-    {
-        public required string Description { get; set; }
-    }
+    public abstract string Description { get; }
 }

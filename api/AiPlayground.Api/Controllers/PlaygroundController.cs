@@ -1,5 +1,6 @@
 ﻿using AiPlayground.Api.Models.Playground;
 using AiPlayground.Api.Services;
+using AiPlayground.Api.ViewModels;
 using AiPlayground.Core.DataTransferObjects;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,20 +19,20 @@ public class PlaygroundController(
     [HttpPost(Name = "CreateCharacter")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<CharacterDto>> CreateCharacter([FromBody] CreateCharacterInputModel model)
+    public async Task<ActionResult<CharacterViewModel>> CreateCharacter([FromBody] CreateCharacterInputModel model)
     {
         if (model == null)
         {
             return BadRequest("Input model cannot be null.");
         }
 
-        var response = await _playgroundService.CreateCharacterAsync(model);
-        return Ok(response);
+        var character = await _playgroundService.CreateCharacterAsync(model);
+        return Ok(character);
     }
 
     [HttpGet(Name = "GetPlaygroundSetup")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<PlaygroundSetupResponseModel>> GetPlaygroundSetup()
+    public async Task<ActionResult<PlaygroundSetupResponseViewModel>> GetPlaygroundSetup()
     {
         var model = await _playgroundService.GetSetupAsync();
         return Ok(model);

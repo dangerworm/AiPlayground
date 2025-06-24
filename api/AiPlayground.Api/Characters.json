@@ -1,22 +1,36 @@
 [
   {
-    "Id": "7328aa47-d84c-460e-b56e-cc748ab99ba1",
-    "CreatedAt": "2025-06-24T06:59:15.0161544Z",
+    "Id": "75e9c615-7110-4fc9-806f-0ff9c72afa49",
+    "CreatedAt": "2025-06-24T19:20:44.925375Z",
     "Connection": {
-      "id": "90680aac-1895-4b23-9ee2-b116c0bc715e",
-      "created_at": "2025-06-24T06:59:15.0158786Z",
-      "endpoint": "api/chat",
-      "host": "localhost",
-      "model": "deepseek-r1:1.5b",
-      "port": 11434,
-      "temperature": 0
+      "Id": "ac7d3931-f3ff-4c7b-b40f-b14ec9aa6dd3",
+      "Created_at": "2025-06-24T19:20:44.9248986Z",
+      "Endpoint": "api/chat",
+      "Host": "localhost",
+      "Model": "mistral",
+      "Port": 11434,
+      "Temperature": 0.7
     },
-    "AgeInIterations": 0,
+    "AgeInIterations": 1,
     "CreatedInIteration": 0,
-    "Colour": "#2ECC71",
+    "Colour": "#FF6B6B",
     "GridPosition": {
-      "Item1": 0,
-      "Item2": 0
-    }
+      "Item1": 3,
+      "Item2": 5
+    },
+    "Responses": [
+      {
+        "Decisions": [
+          "Look(0,0)",
+          "Look(9,9)"
+        ],
+        "Desires": [
+        ],
+        "Emotion": "",
+        "Thoughts": "I find myself in a 10x10 grid world, at coordinates (3,5). I can move around, look at specific coordinates, speak aloud and even ask questions to learn more. For now, let\u0027s start by exploring my surroundings."
+      }
+    ],
+    "Questions": [
+    ]
   }
 ]

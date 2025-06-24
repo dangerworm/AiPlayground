@@ -5,7 +5,7 @@ namespace AiPlayground.Api.Models.Conversations
     public class CharacterEnvironmentOutputModel
     {
         [JsonPropertyName("action_results")]
-        public IDictionary<string, string> ActionResults { get; set; } = new Dictionary<string, string>();
+        public IList<CharacterActionModel> ActionResults { get; set; } = [];
 
         [JsonPropertyName("age")]
         public required int Age { get; set; }
@@ -19,7 +19,7 @@ namespace AiPlayground.Api.Models.Conversations
         [JsonPropertyName("iteration")]
         public required int Iteration { get; set; }
 
-        [JsonPropertyName("sound")]
-        public IDictionary<string, EnvironmentSoundModel> Sound { get; set; } = new Dictionary<string, EnvironmentSoundModel>();
+        [JsonPropertyName("sounds")]
+        public IList<EnvironmentSoundModel> Sounds { get; set; } = [];
     }
 }

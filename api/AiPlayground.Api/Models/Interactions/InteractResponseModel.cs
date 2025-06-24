@@ -5,7 +5,7 @@ namespace AiPlayground.Api.Models.Interactions;
 public class InteractResponseModel
 {
     [JsonPropertyName("action_results")]
-    public IEnumerable<InteractResponseActionResultModel>? ActionResults { get; set; }
+    public IList<InteractResponseActionResultModel>? ActionResults { get; set; }
 
     [JsonPropertyName("age")]
     public required int Age { get; set; }
@@ -17,7 +17,7 @@ public class InteractResponseModel
     public required int[] Position { get; set; }
 
     [JsonPropertyName("sound")]
-    public IEnumerable<InteractResponseSoundModel>? Sound { get; set; }
+    public IList<InteractResponseSoundModel>? Sound { get; set; }
 
     [JsonPropertyName("time")]
     public required int Time { get; set; }

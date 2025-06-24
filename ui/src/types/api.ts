@@ -13,14 +13,22 @@ export type Connection = {
   temperature: number;
 };
 
+export type CharacterResponse = {
+  decisions: string[];
+  desires: string[];
+  emotion: string;
+  thoughts: string;
+};
+
 export type Character = {
   id: string;
-  createdAt: string;
-  connection: Connection;
-  ageInIterations: number;
-  createdInIteration: number;
+  created_at: string;
+  age: number;
   colour: string;
-  gridPosition: GridPosition;
+  grid_position: GridPosition;
+  model: string;
+  questions: string[];
+  responses: CharacterResponse[];
 };
 
 export type CreateCharacterInput = {

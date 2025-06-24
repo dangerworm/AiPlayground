@@ -25,7 +25,9 @@ public class CharacterRepository : JsonFileStore
             CreatedInIteration = createdInIteration,
             Colour = colour,
             Connection = connection,
-            GridPosition = gridPosition
+            GridPosition = gridPosition,
+            Responses = [],
+            Questions = []
         };
 
         var characters = await LoadAsync<List<CharacterEntity>>() ?? [];
@@ -36,7 +38,7 @@ public class CharacterRepository : JsonFileStore
         return character;
     }
 
-    public async Task<IEnumerable<CharacterEntity>> GetCharactersAsync()
+    public async Task<IList<CharacterEntity>> GetCharactersAsync()
     {
         var characters = await LoadAsync<List<CharacterEntity>>();
         return characters ?? [];
@@ -49,16 +51,31 @@ public class CharacterRepository : JsonFileStore
                ?? throw new KeyNotFoundException($"Character with ID {id} not found.");
     }
 
-    public async Task<CharacterEntity> UpdateCharacterAgeByIdAsync(Guid id)
+    public async Task<CharacterEntity> AddMessageAsync(
+        Guid characterId, 
+        IList<string> decisions,
+        IList<string> desires,
+        string emotion,
+        string thoughts
+    )
     {
         var characters = await GetCharactersAsync();
-        var character = characters?.FirstOrDefault(c => c.Id == id)
-               ?? throw new KeyNotFoundException($"Character with ID {id} not found.");
+        var character = characters?.FirstOrDefault(c => c.Id == characterId)
+               ?? throw new KeyNotFoundException($"Character with ID {characterId} not found.");
+
+        var response = new CharacterResponseEntity
+        {
+            Decisions = decisions,
+            Desires = desires,
+            Emotion = emotion,
+            Thoughts = thoughts
+        };
 
         character.AgeInIterations += 1;
+        character.Responses.Add(response);
 
         await SaveAsync(characters);
-        
+
         return character;
     }
 }

@@ -1,4 +1,5 @@
-﻿using AiPlayground.Core.DataTransferObjects;
+﻿using AiPlayground.Api.Models.Conversations;
+using AiPlayground.Core.DataTransferObjects;
 using AiPlayground.Data.Repositories;
 
 namespace AiPlayground.Api.Workflows;
@@ -14,7 +15,7 @@ public class CharacterWorkflow(
     private readonly ModelRepository _modelRepository = modelRepository ?? throw new ArgumentNullException(nameof(modelRepository));
     private readonly PlaygroundRepository _playgroundRepository = playgroundRepository ?? throw new ArgumentNullException(nameof(playgroundRepository));
 
-    public IEnumerable<string> GetAvailableModels()
+    public IList<string> GetAvailableModels()
     {
         return _modelRepository.GetModels();
     }
@@ -26,7 +27,7 @@ public class CharacterWorkflow(
         return character.AsDto();
     }
 
-    public async Task<IEnumerable<CharacterDto>> GetCharactersAsync()
+    public async Task<IList<CharacterDto>> GetCharactersAsync()
     {
         var characters = await _characterRepository.GetCharactersAsync();
         if (characters is null || !characters.Any())
@@ -41,12 +42,25 @@ public class CharacterWorkflow(
     public async Task<CharacterDto> GetCharacterByIdAsync(Guid id)
     {
         var character = await _characterRepository.GetCharacterByIdAsync(id);
+        if (character is null)
+        {
+            Logger.LogError("Character with ID '{Id}' not found.", id);
+            throw new ArgumentException($"Character with ID '{id}' not found.");
+        }
+
         return character.AsDto();
     }
 
-    public async Task<CharacterDto> UpdateCharacterAgeByIdAsync(Guid id)
+    public async Task<CharacterDto> AddMessageAsync(Guid characterId, CharacterResponseModel response)
     {
-        var character = await _characterRepository.UpdateCharacterAgeByIdAsync(id);
+        var character = await _characterRepository.AddMessageAsync(
+            characterId, 
+            response.Decisions,
+            response.Desires,
+            response.Emotion,
+            response.Thoughts
+        );
+
         return character.AsDto();
     }
 }

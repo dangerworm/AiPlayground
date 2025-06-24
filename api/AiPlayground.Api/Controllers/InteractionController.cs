@@ -1,3 +1,4 @@
+using AiPlayground.Api.Models.Conversations;
 using AiPlayground.Api.Models.Interactions;
 using AiPlayground.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -20,18 +21,13 @@ public class InteractionController(
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     //public async Task<ActionResult<InteractResponseModel>> Interact([FromBody] InteractInputModel model)
-    public async Task<ActionResult<string>> Interact([FromBody] InteractInputModel model)
+    public async Task<ActionResult<MessageModel>> Interact([FromBody] InteractInputModel model)
     {
         await _playgroundService.UpdatePlaygroundIterationsAsync();
-        var response = await _interactionService.ContactLlmAsync(model);
-        if (string.IsNullOrEmpty(response))
-        {
-            _logger.LogError("No response received from LLM for character ID '{CharacterId}'", model.CharacterId);
-            return NotFound($"No response received for character ID '{model.CharacterId}'.");
-        }
+        var message = await _interactionService.ContactLlmAsync(model);
 
-        _logger.LogInformation("Received response from LLM for character ID '{CharacterId}': {Response}", model.CharacterId, response);
+        _logger.LogInformation("Received response from LLM for character ID '{CharacterId}': {Response}", model.CharacterId, message.ToString());
 
-        return Ok(response);
+        return Ok(message);
     }
 }

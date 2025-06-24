@@ -9,4 +9,9 @@ public class MessageModel
     
     [JsonPropertyName("content")]
     public required string Content { get; set; }
+
+    public override string ToString()
+    {
+        return $"Role: {Role}{Environment.NewLine}Content: {Content}";
+    }
 }

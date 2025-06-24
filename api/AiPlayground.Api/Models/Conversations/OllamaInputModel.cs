@@ -2,13 +2,13 @@
 
 namespace AiPlayground.Api.Models.Conversations;
 
-public class ChatModel
+public class OllamaInputModel
 {
     [JsonPropertyName("model")]
     public required string Model { get; set; }
 
     [JsonPropertyName("messages")]
-    public required IDictionary<string, MessageModel> Messages { get; set; }
+    public required IList<MessageModel> Messages { get; set; }
 
     [JsonPropertyName("temperature")]
     public required decimal Temperature { get; set; }

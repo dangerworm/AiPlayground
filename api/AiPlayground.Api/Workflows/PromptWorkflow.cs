@@ -9,6 +9,7 @@ public class PromptWorkflow(
 ) : WorkflowBase(logger)
 {
     private const string SystemPromptFileName = "SystemPrompt.txt";
+    private const string FirstMessageFileName = "FirstMessage.txt";
 
     private readonly ActionProvider _actionWorkflow = actionWorkflow ?? throw new ArgumentNullException(nameof(actionWorkflow));
 
@@ -25,14 +26,19 @@ public class PromptWorkflow(
         return builder.ToString();
     }
 
+    public string GetFirstMessage()
+    {
+        return ReadConfigFile(FirstMessageFileName);
+    }
+
     private string ReadConfigFile(string fileName)
     {
-        var systemPromptPath = Path.Combine(AppContext.BaseDirectory, "Config", fileName);
+        var path = Path.Combine(AppContext.BaseDirectory, "Config", fileName);
 
-        if (!File.Exists(systemPromptPath))
+        if (!File.Exists(path))
         {
-            throw new FileNotFoundException("System prompt file not found.", systemPromptPath);
+            throw new FileNotFoundException("File not found.", path);
         }
-        return File.ReadAllText(systemPromptPath);
+        return File.ReadAllText(path);
     }
 }

@@ -1,4 +1,6 @@
-﻿using AiPlayground.Api.Models.Conversations;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using AiPlayground.Api.Models.Conversations;
 using AiPlayground.Api.Models.Interactions;
 using AiPlayground.Api.Workflows;
 using AiPlayground.Core.DataTransferObjects;
@@ -21,7 +23,7 @@ public class InteractionService(
     private readonly PlaygroundWorkflow _playgroundWorkflow = playgroundWorkflow ?? throw new ArgumentNullException(nameof(playgroundWorkflow));
     private readonly PromptWorkflow _promptWorkflow = promptWorkflow ?? throw new ArgumentNullException(nameof(promptWorkflow));
 
-    public async Task<string> ContactLlmAsync(InteractInputModel characterInput)
+    public async Task<MessageModel> ContactLlmAsync(InteractInputModel characterInput)
     {
         var character = await _characterWorkflow.GetCharacterByIdAsync(characterInput.CharacterId);
         if (character is null)
@@ -32,23 +34,24 @@ public class InteractionService(
 
         var chatModel = await BuildChatModelAsync(character);
         var client = BuildClient(character.Connection);
-        
+
         var response = await client.PostAsJsonAsync(character.Connection.Endpoint, chatModel);
-        
-        _logger.LogInformation("Generated output character with ID '{Id}': {Response}", character.Id, response);
-        
-        return await response.Content.ReadAsStringAsync();
+
+        _logger.LogInformation("Generated output for character with ID '{Id}': {Response}", character.Id, response);
+
+        var responseJson = await response.Content.ReadAsStringAsync();
+        return ParseOllamaResponse(responseJson, character);
     }
 
-    public async Task<ChatModel> BuildChatModelAsync(CharacterDto character)
+    public async Task<OllamaInputModel> BuildChatModelAsync(CharacterDto character)
     {
-        var systemPrompt = _promptWorkflow.GetSystemPrompt();
+        var systemPrompt = _promptWorkflow.GetFirstMessage();
         var output = await _characterEnvironmentWorkflow.BuildEnvironmentOutputAsync(character.Id);
 
-        var messages = new Dictionary<string, MessageModel>
+        var messages = new List<MessageModel>
         {
-            { "system", new MessageModel { Role = "system", Content = systemPrompt } },
-            { "user", new MessageModel { Role = "user", Content = output } }
+            { new MessageModel { Role = "system", Content = systemPrompt } },
+            { new MessageModel { Role = "user", Content = output } }
         };
 
         /* Will need previous content at some point
@@ -66,7 +69,7 @@ public class InteractionService(
     public string Thoughts { get; set; } = string.Empty;
         */
 
-        return new ChatModel
+        return new OllamaInputModel
         {
             Messages = messages,
             Model = character.Connection.Model,
@@ -84,5 +87,25 @@ public class InteractionService(
         _logger.LogInformation("Created HTTP client for model: {Model} at {Endpoint}", connection.Model, client.BaseAddress);
 
         return client;
+    }
+
+    private MessageModel ParseOllamaResponse(string responseJson, CharacterDto character)
+    {
+        try
+        {
+            var message = JsonSerializer.Deserialize<OllamaResponseModel>(responseJson)?.Message;
+            if (message is null)
+            {
+                _logger.LogError("Deserialized message is null for character ID '{Id}': {Response}", character.Id, responseJson);
+                throw new InvalidOperationException($"Deserialized message is null for character ID '{character.Id}'.");
+            }
+
+            return message;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Failed to deserialize response for character ID '{Id}': {Response}", character.Id, responseJson);
+            throw new InvalidOperationException($"Failed to deserialize response for character ID '{character.Id}'.", ex);
+        }
     }
 }

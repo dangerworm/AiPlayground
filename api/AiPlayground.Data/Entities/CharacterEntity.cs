@@ -1,4 +1,5 @@
 ﻿using AiPlayground.Core.DataTransferObjects;
+using AiPlayground.Core.Models.Conversations;
 
 namespace AiPlayground.Data.Entities;
 
@@ -11,7 +12,8 @@ public class CharacterEntity
     public required int CreatedInIteration { get; set; }
     public required string Colour { get; set; }
     public required Tuple<int, int> GridPosition { get; set; } = new Tuple<int, int>(0, 0);
-    public required IList<CharacterResponseEntity> Responses { get; set; }
+    public required IList<EnvironmentInputModel> Inputs { get; set; }
+    public required IList<CharacterResponseModel> Responses { get; set; }
     public required IList<string> Questions { get; set; }
 
     public CharacterDto AsDto()
@@ -24,7 +26,8 @@ public class CharacterEntity
             CreatedInIteration, 
             Colour, 
             GridPosition,
-            [.. Responses.Select(r => r.AsDto())],
+            Inputs,
+            Responses,
             Questions
         );
     }

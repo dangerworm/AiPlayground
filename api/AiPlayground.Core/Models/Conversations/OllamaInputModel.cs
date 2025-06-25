@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AiPlayground.Api.Models.Conversations;
+namespace AiPlayground.Core.Models.Conversations;
 
 public class OllamaInputModel
 {

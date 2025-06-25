@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AiPlayground.Api.Models.Interactions;
+namespace AiPlayground.Core.Models.Conversations;
 
-public class InteractResponseSoundModel
+public class EnvironmentSoundModel
 {
     [JsonPropertyName("content")]
     public required string Content { get; set; }

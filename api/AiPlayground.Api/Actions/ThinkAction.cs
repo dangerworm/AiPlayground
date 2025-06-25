@@ -9,4 +9,9 @@ public class ThinkAction : ActionBase, IAction
     {
         return null;
     }
+
+    public override void Setup(string decision)
+    {
+        throw new NotImplementedException();
+    }
 }

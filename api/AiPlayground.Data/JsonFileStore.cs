@@ -1,20 +1,23 @@
-﻿using System.Text.Json;
+﻿using System.Reflection;
+using System.Text.Json;
 
 namespace AiPlayground.Data
 {
     public abstract class JsonFileStore()
     {
-        protected abstract string FilePath { get; }
+        protected abstract string FileName { get; }
 
         public async Task<T> LoadAsync<T>()
             where T : new()
         {
-            if (!File.Exists(FilePath))
+            var path = GetFilePath();
+
+            if (!File.Exists(path))
             {
-                await File.Create(FilePath).DisposeAsync();
+                await File.Create(path).DisposeAsync();
             }
 
-            var json = await File.ReadAllTextAsync(FilePath);
+            var json = await File.ReadAllTextAsync(path);
 
             try
             {
@@ -31,8 +34,21 @@ namespace AiPlayground.Data
 
         public async Task SaveAsync<T>(T data)
         {
+            var path = GetFilePath();
+
             var json = JsonSerializer.Serialize(data);
-            await File.WriteAllTextAsync(FilePath, json);
+            await File.WriteAllTextAsync(path, json);
+        }
+
+        private string GetFilePath()
+        {
+            var targetFolder = "Data";
+            if (!Directory.Exists(targetFolder))
+            {
+                Directory.CreateDirectory(targetFolder);
+            }
+
+            return Path.Combine(targetFolder, FileName);
         }
     }
 }

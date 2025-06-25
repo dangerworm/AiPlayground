@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AiPlayground.Api.Models.Interactions;
+namespace AiPlayground.Core.Models.Conversations;
 
-public class InteractResponseActionResultModel
+public class EnvironmentActionResultModel
 {
     [JsonPropertyName("action_name")]
     public required string ActionName { get; set; }

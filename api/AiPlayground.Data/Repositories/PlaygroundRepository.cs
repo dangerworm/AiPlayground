@@ -4,7 +4,7 @@ namespace AiPlayground.Data.Repositories;
 
 public class PlaygroundRepository : JsonFileStore
 {
-    protected override string FilePath => "Playground.json";
+    protected override string FileName => "Playground.json";
 
     public async Task<PlaygroundEntity> GetPlaygroundAsync()
     {

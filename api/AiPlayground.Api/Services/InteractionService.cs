@@ -1,10 +1,10 @@
 ﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using AiPlayground.Api.Models.Conversations;
-using AiPlayground.Api.Models.Interactions;
 using AiPlayground.Api.ViewModels;
 using AiPlayground.Api.Workflows;
 using AiPlayground.Core.DataTransferObjects;
+using AiPlayground.Core.Models;
+using AiPlayground.Core.Models.Conversations;
+using AiPlayground.Core.Models.Interactions;
 
 namespace AiPlayground.Api.Services;
 
@@ -12,35 +12,38 @@ public class InteractionService(
     ILogger<InteractionService> logger,
     IHttpClientFactory httpClientFactory,
     CharacterWorkflow characterWorkflow,
-    CharacterEnvironmentWorkflow characterEnvironmentWorkflow,
     PromptWorkflow promptWorkflow
 )
 {
     private readonly ILogger<InteractionService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
     private readonly CharacterWorkflow _characterWorkflow = characterWorkflow ?? throw new ArgumentNullException(nameof(characterWorkflow));
-    private readonly CharacterEnvironmentWorkflow _characterEnvironmentWorkflow = characterEnvironmentWorkflow ?? throw new ArgumentNullException(nameof(characterEnvironmentWorkflow));
     private readonly PromptWorkflow _promptWorkflow = promptWorkflow ?? throw new ArgumentNullException(nameof(promptWorkflow));
 
     public async Task<CharacterViewModel> ProcessInteraction(InteractInputModel model)
     {
         var character = await _characterWorkflow.GetCharacterByIdAsync(model.CharacterId);
-        var client = BuildClient(character.Connection);
-        var chatModel = await BuildChatModelAsync(character);
+        var messages = BuildChatHistoryAsync(character);
 
-        var response = await client.PostAsJsonAsync(character.Connection.Endpoint, chatModel);
+        var environmentInput = await _characterWorkflow.BuildEnvironmentInputAsync(character.Id);
+        var inputJson = JsonSerializer.Serialize(environmentInput);
+        messages.Add(new MessageModel { Role = "user", Content = inputJson });
+
+        var client = BuildClient(character.Connection);
+        var ollamaInput = BuildOllamaInputModel(character, messages);
+        var response = await client.PostAsJsonAsync(character.Connection.Endpoint, ollamaInput);
 
         _logger.LogInformation("Generated output for character with ID '{Id}': {Response}", character.Id, response);
 
         var responseJson = await response.Content.ReadAsStringAsync();
-        var characterResponse = ParseLlmResponse(responseJson, character);
+        var characterResponse = ParseLlmResponse(responseJson, character.Id);
 
-        character = await _characterWorkflow.AddMessageAsync(character.Id, characterResponse);
+        character = await _characterWorkflow.AddIterationMessagesAsync(character.Id, environmentInput, characterResponse);
 
         return new CharacterViewModel(character);
     }
 
-    public async Task<OllamaInputModel> BuildChatModelAsync(CharacterDto character)
+    private IList<MessageModel> BuildChatHistoryAsync(CharacterDto character)
     {
         var systemPrompt = _promptWorkflow.GetSystemPrompt();
 
@@ -49,20 +52,9 @@ public class InteractionService(
             new MessageModel { Role = "system", Content = systemPrompt }
         };
 
-        foreach(var response in character.Responses)
-        {
-            messages.Add(new MessageModel { Role = "assistant", Content = JsonSerializer.Serialize(response) });
-        }
+        BuildCorrelatedConversationMessages(character, messages);
 
-        var output = await _characterEnvironmentWorkflow.BuildEnvironmentOutputAsync(character.Id);
-        messages.Add(new MessageModel { Role = "user", Content = output });
-
-        return new OllamaInputModel
-        {
-            Messages = messages,
-            Model = character.Connection.Model,
-            Temperature = character.Connection.Temperature,
-        };
+        return messages;
     }
 
     private HttpClient BuildClient(ConnectionDto connection)
@@ -77,30 +69,77 @@ public class InteractionService(
         return client;
     }
 
-    private CharacterResponseModel ParseLlmResponse(string responseJson, CharacterDto character)
+    private void BuildCorrelatedConversationMessages(CharacterDto character, IList<MessageModel> messages)
     {
-        try
+        var inputs = character.Inputs as IEnumerable<ICorrelated>;
+        var responses = character.Responses as IEnumerable<ICorrelated>;
+
+        var messageGroups = inputs
+            .Union(responses)
+            .GroupBy(message => message.CorrelationId);
+
+        foreach (var group in messageGroups)
         {
-            var message = JsonSerializer.Deserialize<OllamaResponseModel>(responseJson)?.Message;
-            if (message is null)
+            if (group.FirstOrDefault(m => m is EnvironmentInputModel) is not EnvironmentInputModel input ||
+                group.FirstOrDefault(m => m is CharacterResponseModel) is not CharacterResponseModel response)
             {
-                _logger.LogError("Deserialized message is null for character ID '{Id}': {Response}", character.Id, responseJson);
-                throw new InvalidOperationException($"Deserialized message is null for character ID '{character.Id}'.");
+                var error = $"{nameof(EnvironmentInputModel)} or {nameof(CharacterResponseModel)} is null";
+                _logger.LogError("{Error} for correlation ID {CorrelationID}", error, group.Key);
+                throw new InvalidOperationException($"{error} for correlation ID '{group.Key}'.");
             }
 
+            input.CorrelationId = null;
+            response.CorrelationId = null;
+
+            messages.Add(new MessageModel { Role = "user", Content = JsonSerializer.Serialize(input) });
+            messages.Add(new MessageModel { Role = "assistant", Content = JsonSerializer.Serialize(response) });
+        }
+    }
+
+    private OllamaInputModel BuildOllamaInputModel(CharacterDto character, IList<MessageModel> messages)
+    {
+        return new OllamaInputModel
+        {
+            Model = character.Connection.Model,
+            Messages = messages,
+            Temperature = character.Connection.Temperature,
+        };
+    }
+
+    private CharacterResponseModel ParseLlmResponse(string responseJson, Guid characterId)
+    {
+        MessageModel? message;
+
+        try
+        {
+            message = JsonSerializer.Deserialize<OllamaResponseModel>(responseJson)?.Message;
+            if (message is null)
+            {
+                _logger.LogError("Deserialized message is null for character ID '{Id}': {Response}", characterId, responseJson);
+                throw new InvalidOperationException($"Deserialized message is null for character ID '{characterId}'.");
+            }
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Failed to deserialize response for character ID '{Id}': {Response}", characterId, responseJson);
+            throw new InvalidOperationException($"Failed to deserialize response for character ID '{characterId}'.", ex);
+        }
+
+        try
+        {
             var response = JsonSerializer.Deserialize<CharacterResponseModel>(message.Content.Trim());
             if (response is null)
             {
-                _logger.LogError(responseJson, "Deserialized response is null for character ID '{Id}': {Response}", character.Id, responseJson);
-                throw new InvalidOperationException($"Deserialized response is null for character ID '{character.Id}'.");
+                _logger.LogError(responseJson, "Deserialized response is null for character ID '{Id}': {Response}", characterId, responseJson);
+                throw new InvalidOperationException($"Deserialized response is null for character ID '{characterId}'.");
             }
 
             return response;
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "Failed to deserialize response for character ID '{Id}': {Response}", character.Id, responseJson);
-            throw new InvalidOperationException($"Failed to deserialize response for character ID '{character.Id}'.", ex);
+            _logger.LogError(ex, "Failed to deserialize response for character ID '{Id}': {Response}", characterId, responseJson);
+            throw new InvalidOperationException($"Failed to deserialize response for character ID '{characterId}'.", ex);
         }
     }
 }

@@ -17,4 +17,9 @@ public class AskAction : ActionBase, IAction
         // For now, we will just return a placeholder response.
         return @$"You asked ""{Question}"". This function is under development and so this is just a placeholder response.";
     }
+
+    public override void Setup(string decision)
+    {
+        throw new NotImplementedException();
+    }
 }

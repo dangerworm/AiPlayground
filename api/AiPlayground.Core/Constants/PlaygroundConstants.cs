@@ -4,6 +4,7 @@
     {
         public static IList<string> AvailableModels =
         [
+            "llama3.1:8b",
             "mistral",
         ];
 

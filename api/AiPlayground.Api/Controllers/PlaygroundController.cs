@@ -1,7 +1,7 @@
-﻿using AiPlayground.Api.Models.Playground;
-using AiPlayground.Api.Services;
+﻿using AiPlayground.Api.Services;
 using AiPlayground.Api.ViewModels;
 using AiPlayground.Core.DataTransferObjects;
+using AiPlayground.Core.Models.Playground;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AiPlayground.Api.Controllers;

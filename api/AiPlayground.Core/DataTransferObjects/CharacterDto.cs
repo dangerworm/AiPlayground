@@ -1,4 +1,6 @@
-﻿namespace AiPlayground.Core.DataTransferObjects;
+﻿using AiPlayground.Core.Models.Conversations;
+
+namespace AiPlayground.Core.DataTransferObjects;
 
 public class CharacterDto
 {
@@ -10,7 +12,8 @@ public class CharacterDto
         int createdInIteration,
         string colour,
         Tuple<int, int> gridPosition,
-        IList<CharacterResponseDto> responses,
+        IList<EnvironmentInputModel> inputs,
+        IList<CharacterResponseModel> responses,
         IList<string> questions
     )
     {
@@ -21,6 +24,7 @@ public class CharacterDto
         CreatedInIteration = createdInIteration;
         Colour = colour;
         GridPosition = gridPosition;
+        Inputs = inputs;
         Responses = responses;
         Questions = questions;
     }
@@ -32,6 +36,7 @@ public class CharacterDto
     public int CreatedInIteration { get; }
     public string Colour { get; }
     public Tuple<int, int> GridPosition { get; }
-    public IList<CharacterResponseDto> Responses { get; }
+    public IList<EnvironmentInputModel> Inputs { get; }
+    public IList<CharacterResponseModel> Responses { get; }
     public IList<string> Questions { get; }
 }

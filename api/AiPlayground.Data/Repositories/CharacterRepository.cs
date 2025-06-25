@@ -1,11 +1,13 @@
-﻿using AiPlayground.Core.DataTransferObjects;
+﻿using AiPlayground.Core.Constants;
+using AiPlayground.Core.DataTransferObjects;
+using AiPlayground.Core.Models.Conversations;
 using AiPlayground.Data.Entities;
 
 namespace AiPlayground.Data.Repositories;
 
 public class CharacterRepository : JsonFileStore
 {
-    protected override string FilePath => "Characters.json";
+    protected override string FileName => "Characters.json";
 
     public async Task<CharacterEntity> CreateCharacterAsync(int createdInIteration, string colour, ConnectionDto connectionDto, Tuple<int, int> gridPosition)
     {
@@ -26,6 +28,7 @@ public class CharacterRepository : JsonFileStore
             Colour = colour,
             Connection = connection,
             GridPosition = gridPosition,
+            Inputs = [],
             Responses = [],
             Questions = []
         };
@@ -51,28 +54,35 @@ public class CharacterRepository : JsonFileStore
                ?? throw new KeyNotFoundException($"Character with ID {id} not found.");
     }
 
-    public async Task<CharacterEntity> AddMessageAsync(
+    public async Task<CharacterEntity> AddIterationMessagesAsync(
         Guid characterId, 
-        IList<string> decisions,
-        IList<string> desires,
-        string emotion,
-        string thoughts
+        EnvironmentInputModel input, 
+        CharacterResponseModel response
     )
     {
         var characters = await GetCharactersAsync();
         var character = characters?.FirstOrDefault(c => c.Id == characterId)
                ?? throw new KeyNotFoundException($"Character with ID {characterId} not found.");
 
-        var response = new CharacterResponseEntity
-        {
-            Decisions = decisions,
-            Desires = desires,
-            Emotion = emotion,
-            Thoughts = thoughts
-        };
-
-        character.AgeInIterations += 1;
+        character.Inputs.Add(input);
         character.Responses.Add(response);
+        character.AgeInIterations += 1;
+
+        await SaveAsync(characters);
+
+        return character;
+    }
+
+    public async Task<CharacterEntity> UpdatePositionByDeltaAsync(Guid characterId, int dx, int dy)
+    {
+        var characters = await GetCharactersAsync();
+        var character = characters?.FirstOrDefault(c => c.Id == characterId)
+               ?? throw new KeyNotFoundException($"Character with ID {characterId} not found.");
+
+        var newX = Math.Min(0, Math.Max(PlaygroundConstants.DefaultGridSize, character.GridPosition.Item1 + dx));
+        var newY = Math.Min(0, Math.Max(PlaygroundConstants.DefaultGridSize, character.GridPosition.Item2 + dy));
+
+        character.GridPosition = new Tuple<int, int>(newX, newY);
 
         await SaveAsync(characters);
 

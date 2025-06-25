@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AiPlayground.Api.Models.Actions;
+namespace AiPlayground.Core.Models.Actions;
 
 public class ActionModel
 {

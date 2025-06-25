@@ -6,14 +6,27 @@ import {
   Divider,
   Stack,
   Chip,
+  CircularProgress,
+  keyframes,
 } from '@mui/material';
 import { Character } from '../types/api';
+
+// Define the gradient animation
+const gradientShift = keyframes`
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+`;
 
 type CharacterDetailsDrawerProps = {
   open: boolean;
   onClose: () => void;
   character: Character | null;
   onInteract: (characterId: string) => Promise<void>;
+  isInteracting: boolean;
 };
 
 export const CharacterDetailsDrawer = ({
@@ -21,6 +34,7 @@ export const CharacterDetailsDrawer = ({
   onClose,
   character,
   onInteract,
+  isInteracting,
 }: CharacterDetailsDrawerProps) => {
   if (!character) return null;
 
@@ -105,7 +119,53 @@ export const CharacterDetailsDrawer = ({
             </Typography>
           ) : (
             <Stack spacing={2}>
-              {character.responses.map((response, index) => (
+              {/* Loading placeholder when interacting */}
+              {isInteracting && (
+                <Box
+                  sx={{
+                    backgroundColor: 'background.paper',
+                    p: 2,
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: theme => `linear-gradient(
+                        90deg,
+                        ${theme.palette.background.paper} 0%,
+                        ${theme.palette.action.hover} 50%,
+                        ${theme.palette.background.paper} 100%
+                      )`,
+                      backgroundSize: '200% 100%',
+                      animation: `${gradientShift} 2s linear infinite`,
+                    },
+                  }}
+                >
+                  {/* Placeholder content */}
+                  <Box sx={{ opacity: 0.3 }}>
+                    <Box sx={{ mb: 1 }}>
+                      <Chip 
+                        label="Thinking..."
+                        size="small"
+                        sx={{ mb: 1 }}
+                      />
+                    </Box>
+                    <Typography variant="body2" sx={{ mb: 1.5 }}>
+                      . . .
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+              
+              {/* Existing responses in reverse chronological order */}
+              {[...character.responses].reverse().map((response, index) => (
                 <Box
                   key={index}
                   sx={{
@@ -182,9 +242,17 @@ export const CharacterDetailsDrawer = ({
         <Button
           variant="contained"
           onClick={() => onInteract(character.id)}
+          disabled={isInteracting}
           sx={{ mt: 2 }}
         >
-          Interact
+          {isInteracting ? (
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <CircularProgress size={20} sx={{ mr: 1, color: 'inherit' }} />
+              Thinking...
+            </Box>
+          ) : (
+            'Interact'
+          )}
         </Button>
       </Box>
     </Drawer>

@@ -5,7 +5,6 @@
         public static IServiceCollection AddWorkflows(this IServiceCollection services)
         {
             services
-                .AddScoped<CharacterEnvironmentWorkflow>()
                 .AddScoped<CharacterWorkflow>()
                 .AddScoped<ConnectionWorkflow>()
                 .AddScoped<PlaygroundWorkflow>()

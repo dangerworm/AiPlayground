@@ -4,7 +4,7 @@ namespace AiPlayground.Data.Repositories;
 
 public class MemoryRepository : JsonFileStore
 {
-    protected override string FilePath => "Memories.json";
+    protected override string FileName => "Memories.json";
 
     public async Task<IList<MemoryEntity>> GetMemoriesAsync()
     {

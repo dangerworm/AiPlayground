@@ -1,7 +1,7 @@
-﻿using AiPlayground.Api.Models.Playground;
-using AiPlayground.Api.ViewModels;
+﻿using AiPlayground.Api.ViewModels;
 using AiPlayground.Api.Workflows;
 using AiPlayground.Core.Constants;
+using AiPlayground.Core.Models.Playground;
 
 namespace AiPlayground.Api.Services;
 

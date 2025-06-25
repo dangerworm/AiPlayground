@@ -1,7 +1,6 @@
-using AiPlayground.Api.Models.Conversations;
-using AiPlayground.Api.Models.Interactions;
 using AiPlayground.Api.Services;
 using AiPlayground.Api.ViewModels;
+using AiPlayground.Core.Models.Interactions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AiPlayground.Api.Controllers;

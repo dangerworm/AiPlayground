@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AiPlayground.Api.Models.Interactions;
+namespace AiPlayground.Core.Models.Interactions;
 
 public class InteractInputModel
 {

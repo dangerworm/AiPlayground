@@ -1,10 +1,12 @@
 ﻿using System.Text.Json.Serialization;
-using AiPlayground.Core.Models.Conversations;
 
-namespace AiPlayground.Api.ViewModels;
+namespace AiPlayground.Core.Models.Conversations;
 
-public class CharacterResponseViewModel
+public class CharacterResponseModel : ICorrelated
 {
+    [JsonPropertyName("correlation_id")]
+    public Guid? CorrelationId { get; set; }
+
     [JsonPropertyName("decisions")]
     public IList<string>? Decisions { get; set; } = [];
 
@@ -16,12 +18,4 @@ public class CharacterResponseViewModel
 
     [JsonPropertyName("thoughts")]
     public string? Thoughts { get; set; } = string.Empty;
-
-    public CharacterResponseViewModel(CharacterResponseModel response)
-    {
-        Decisions = response.Decisions;
-        Desires = response.Desires;
-        Emotion = response.Emotion;
-        Thoughts = response.Thoughts;
-    }
 }

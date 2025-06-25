@@ -19,4 +19,9 @@ public class SpeakAction : ActionBase, IAction
     {
         throw new NotImplementedException();
     }
+
+    public override void Setup(string decision)
+    {
+        throw new NotImplementedException();
+    }
 }

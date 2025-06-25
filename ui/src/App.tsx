@@ -12,6 +12,7 @@ function App() {
   const [setup, setSetup] = useState<PlaygroundSetup | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [interactingCharacterId, setInteractingCharacterId] = useState<string | null>(null);
   
   const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
@@ -64,6 +65,7 @@ function App() {
 
   const handleInteract = async (characterId: string) => {
     try {
+      setInteractingCharacterId(characterId);
       const response = await interactWithCharacter({ character_id: characterId });
       
       // Refresh the playground setup to get updated character data
@@ -83,6 +85,8 @@ function App() {
       }));
     } catch (err) {
       console.error('Failed to interact with character:', err);
+    } finally {
+      setInteractingCharacterId(null);
     }
   };
 
@@ -164,6 +168,7 @@ function App() {
         onClose={() => setSelectedCharacter(null)}
         character={selectedCharacter}
         onInteract={handleInteract}
+        isInteracting={selectedCharacter ? interactingCharacterId === selectedCharacter.id : false}
       />
     </Box>
   );

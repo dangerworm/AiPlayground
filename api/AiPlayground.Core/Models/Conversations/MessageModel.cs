@@ -1,14 +1,14 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace AiPlayground.Api.Models.Conversations;
+namespace AiPlayground.Core.Models.Conversations;
 
 public class MessageModel
 {
     [JsonPropertyName("role")]
-    public required string Role { get; set; }
+    public string Role { get; set; } = null!;
     
     [JsonPropertyName("content")]
-    public required string Content { get; set; }
+    public string Content { get; set; } = null!;
 
     public override string ToString()
     {

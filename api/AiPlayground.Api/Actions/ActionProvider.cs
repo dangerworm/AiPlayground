@@ -1,14 +1,15 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
-using AiPlayground.Api.Actions;
 using AiPlayground.Api.Attributes;
-using AiPlayground.Api.Models.Actions;
+using AiPlayground.Core.Models.Actions;
 
-namespace AiPlayground.Api.Providers
+namespace AiPlayground.Api.Actions
 {
-    public class ActionProvider
+    public class ActionProvider(IServiceProvider serviceProvider)
     {
+        private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        
         private static Dictionary<Type, string> _typeAlias = new Dictionary<Type, string>
         {
             { typeof(bool), "bool" },
@@ -29,11 +30,22 @@ namespace AiPlayground.Api.Providers
             { typeof(void), "void" }
         };
 
-        private readonly IServiceProvider _serviceProvider;
-
-        public ActionProvider(IServiceProvider serviceProvider)
+        public T GetActionInstance<T>(string actionName)
+            where T: IAction
         {
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            if (string.IsNullOrWhiteSpace(actionName))
+            {
+                throw new ArgumentException("Action name cannot be null or empty.", nameof(actionName));
+            }
+
+            var actionType = GetActionTypes()
+                .FirstOrDefault(type => type.Name.Equals(actionName, StringComparison.OrdinalIgnoreCase))
+                ?? throw new InvalidOperationException($"Action '{actionName}' not found.");
+
+            T instance = (T)_serviceProvider.GetRequiredService(actionType)
+                ?? throw new InvalidOperationException($"Action {actionType.Name} could not be instantiated. Ensure it is registered in the service provider.");
+            
+            return instance;
         }
 
         public IList<IAction> GetActionInstances()

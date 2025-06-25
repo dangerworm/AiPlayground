@@ -1,6 +1,4 @@
-﻿using AiPlayground.Api.Actions;
-
-namespace AiPlayground.Api.Providers;
+﻿namespace AiPlayground.Api.Actions;
 
 public static class ServiceCollectionExtensions
 {
@@ -16,6 +14,7 @@ public static class ServiceCollectionExtensions
         }
 
         services
+            .AddScoped<ActionProcessor>()
             .AddScoped<ActionProvider>();
 
         return services;

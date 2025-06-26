@@ -48,7 +48,7 @@ namespace AiPlayground.Api.Actions
             return instance;
         }
 
-        public IList<IAction> GetActionInstances()
+        public IEnumerable<IAction> GetActionInstances()
         {
             var actionTypes = GetActionTypes();
             
@@ -93,7 +93,7 @@ namespace AiPlayground.Api.Actions
             return string.Join(Environment.NewLine, actionDescriptions);
         }
 
-        private IList<Type> GetActionTypes()
+        private IEnumerable<Type> GetActionTypes()
         {
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())

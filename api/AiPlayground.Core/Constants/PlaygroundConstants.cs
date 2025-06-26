@@ -2,7 +2,7 @@
 {
     public class PlaygroundConstants
     {
-        public static IList<string> AvailableModels =
+        public static IEnumerable<string> AvailableModels =
         [
             "llama3.1:8b",
             "mistral",

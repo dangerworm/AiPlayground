@@ -12,9 +12,9 @@ public class CharacterDto
         int createdInIteration,
         string colour,
         Tuple<int, int> gridPosition,
-        IList<EnvironmentInputModel> inputs,
-        IList<CharacterResponseModel> responses,
-        IList<string> questions
+        IEnumerable<EnvironmentInputModel> inputs,
+        IEnumerable<CharacterResponseModel> responses,
+        IEnumerable<string> questions
     )
     {
         Id = id;
@@ -36,7 +36,7 @@ public class CharacterDto
     public int CreatedInIteration { get; }
     public string Colour { get; }
     public Tuple<int, int> GridPosition { get; }
-    public IList<EnvironmentInputModel> Inputs { get; }
-    public IList<CharacterResponseModel> Responses { get; }
-    public IList<string> Questions { get; }
+    public IEnumerable<EnvironmentInputModel> Inputs { get; }
+    public IEnumerable<CharacterResponseModel> Responses { get; }
+    public IEnumerable<string> Questions { get; }
 }

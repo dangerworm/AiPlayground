@@ -6,10 +6,10 @@ namespace AiPlayground.Api.ViewModels;
 public class CharacterResponseViewModel
 {
     [JsonPropertyName("decisions")]
-    public IList<string>? Decisions { get; set; } = [];
+    public IEnumerable<string>? Decisions { get; set; } = [];
 
     [JsonPropertyName("desires")]
-    public IList<string>? Desires { get; set; } = [];
+    public IEnumerable<string>? Desires { get; set; } = [];
 
     [JsonPropertyName("emotion")]
     public string? Emotion { get; set; } = string.Empty;

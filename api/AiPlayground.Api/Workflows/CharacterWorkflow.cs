@@ -1,5 +1,8 @@
-﻿using AiPlayground.Api.Actions;
+﻿using System.Text.Json;
+using System.Threading.Tasks;
+using AiPlayground.Api.Actions;
 using AiPlayground.Core.DataTransferObjects;
+using AiPlayground.Core.Models;
 using AiPlayground.Core.Models.Conversations;
 using AiPlayground.Data.Repositories;
 
@@ -18,7 +21,7 @@ public class CharacterWorkflow(
     private readonly ModelRepository _modelRepository = modelRepository ?? throw new ArgumentNullException(nameof(modelRepository));
     private readonly PlaygroundRepository _playgroundRepository = playgroundRepository ?? throw new ArgumentNullException(nameof(playgroundRepository));
 
-    public IList<string> GetAvailableModels()
+    public IEnumerable<string> GetAvailableModels()
     {
         return _modelRepository.GetModels();
     }
@@ -30,7 +33,7 @@ public class CharacterWorkflow(
         return character.AsDto();
     }
 
-    public async Task<IList<CharacterDto>> GetCharactersAsync()
+    public async Task<IEnumerable<CharacterDto>> GetCharactersAsync()
     {
         var characters = await _characterRepository.GetCharactersAsync();
         if (characters is null || !characters.Any())
@@ -72,10 +75,8 @@ public class CharacterWorkflow(
     public async Task<EnvironmentInputModel> BuildEnvironmentInputAsync(Guid characterId)
     {
         var character = await _characterRepository.GetCharacterByIdAsync(characterId);
-        var actionResults = new List<EnvironmentActionResultModel>();
-        _actionProcessor.ProcessActions(character.AsDto());
-        var environment = await _playgroundRepository.GetPlaygroundAsync();
-        var sounds = new List<EnvironmentSoundModel>();
+        var actionResults = await _actionProcessor.ProcessActions(character.AsDto());
+        var playground = await _playgroundRepository.GetPlaygroundAsync();
 
         var input = new EnvironmentInputModel
         {
@@ -83,12 +84,44 @@ public class CharacterWorkflow(
             Age = character.AgeInIterations,
             GridPosition = $"[{character.GridPosition.Item1},{character.GridPosition.Item2}]",
             Environment = await DescribeCharacterEnvironmentAsync(characterId),
-            Iteration = environment.Iterations,
-            Sounds = sounds,
-            Time = environment.Iterations
+            Iteration = playground.Iterations,
+            Sounds = [],
+            Time = playground.Iterations
         };
 
         return input;
+    }
+
+    public async Task<IEnumerable<MessageModel>> BuildCorrelatedChatHistoryAsync(Guid characterId)
+    {
+        var character = await GetCharacterByIdAsync(characterId);
+
+        var inputs = character.Inputs as IEnumerable<ICorrelated>;
+        var responses = character.Responses as IEnumerable<ICorrelated>;
+
+        var messageGroups = inputs
+            .Union(responses)
+            .GroupBy(message => message.CorrelationId);
+
+        var messages = new List<MessageModel>();
+        foreach (var group in messageGroups)
+        {
+            if (group.FirstOrDefault(m => m is EnvironmentInputModel) is not EnvironmentInputModel input ||
+                group.FirstOrDefault(m => m is CharacterResponseModel) is not CharacterResponseModel response)
+            {
+                var error = $"{nameof(EnvironmentInputModel)} or {nameof(CharacterResponseModel)} is null";
+                Logger.LogError("{Error} for correlation ID {CorrelationID}", error, group.Key);
+                throw new InvalidOperationException($"{error} for correlation ID '{group.Key}'.");
+            }
+
+            input.CorrelationId = null;
+            response.CorrelationId = null;
+
+            messages.Add(new MessageModel { Role = "user", Content = JsonSerializer.Serialize(input) });
+            messages.Add(new MessageModel { Role = "assistant", Content = JsonSerializer.Serialize(response) });
+        }
+
+        return messages;
     }
 
     private async Task<string> DescribeCharacterEnvironmentAsync(Guid characterId)
@@ -99,12 +132,13 @@ public class CharacterWorkflow(
             return "No characters found in the environment.";
         }
 
-        if (!characters.Any(c => c.Id != characterId))
+        var otherCharacters = characters.Where(c => c.Id != characterId);
+        if (!otherCharacters.Any())
         {
             return $"No other characters found in the environment.";
         }
 
-        var descriptions = characters.Select(c => $"Character {c.Id} is at position {c.GridPosition}.").ToList();
+        var descriptions = otherCharacters.Select(c => $"A {c.Colour} character is at position {c.GridPosition}.").ToList();
         return string.Join(Environment.NewLine, descriptions);
     }
 }

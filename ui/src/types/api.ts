@@ -37,10 +37,6 @@ export type CreateCharacterInput = {
   model: string;
 };
 
-export type InteractInput = {
-  character_id: string;
-};
-
 export type PlaygroundSetup = {
   available_models: string[];
   characters: Character[];

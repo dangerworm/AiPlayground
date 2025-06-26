@@ -61,6 +61,11 @@ export const CreateCharacterDrawer = ({
     );
   };
 
+  // Check if a color is already used by another character
+  const isColorTaken = (color: string) => {
+    return setup.characters.some(char => char.colour.toLowerCase() === color.toLowerCase());
+  };
+
   // Update form data when initialPosition changes
   useEffect(() => {
     if (initialPosition) {
@@ -71,11 +76,25 @@ export const CreateCharacterDrawer = ({
     }
   }, [initialPosition]);
 
+  // Find the first available color from presets
+  useEffect(() => {
+    if (open && isColorTaken(formData.colour)) {
+      const availableColor = COLOR_PRESETS.find(color => !isColorTaken(color));
+      if (availableColor) {
+        setFormData(prev => ({
+          ...prev,
+          colour: availableColor
+        }));
+      }
+    }
+  }, [open, setup.characters]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if the position is occupied before submitting
-    if (isPositionOccupied(formData.grid_position.item1, formData.grid_position.item2)) {
+    // Check if the position is occupied or color is taken before submitting
+    if (isPositionOccupied(formData.grid_position.item1, formData.grid_position.item2) || 
+        isColorTaken(formData.colour)) {
       return;
     }
 
@@ -99,6 +118,10 @@ export const CreateCharacterDrawer = ({
     }));
   };
 
+  const handleColorChange = (color: string) => {
+    setFormData(prev => ({ ...prev, colour: color }));
+  };
+
   // Check if there are no available models
   if (!setup.available_models?.length) {
     return (
@@ -112,8 +135,14 @@ export const CreateCharacterDrawer = ({
     );
   }
 
+  // Check if all colors are taken
+  const areAllColorsTaken = COLOR_PRESETS.every(color => isColorTaken(color));
+
   // Check if the current position is occupied
   const isCurrentPositionOccupied = isPositionOccupied(formData.grid_position.item1, formData.grid_position.item2);
+  
+  // Check if current color is taken
+  const isCurrentColorTaken = isColorTaken(formData.colour);
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
@@ -148,9 +177,8 @@ export const CreateCharacterDrawer = ({
                 fullWidth
                 type="color"
                 value={formData.colour}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, colour: e.target.value }))
-                }
+                onChange={(e) => handleColorChange(e.target.value)}
+                error={isCurrentColorTaken}
                 sx={{ 
                   '& input': { 
                     height: '50px',
@@ -158,31 +186,50 @@ export const CreateCharacterDrawer = ({
                   } 
                 }}
               />
+              {isCurrentColorTaken && (
+                <Typography color="error" variant="caption">
+                  This color is already taken by another character
+                </Typography>
+              )}
               <Paper variant="outlined" sx={{ p: 1.5 }}>
                 <Typography variant="caption" display="block" gutterBottom>
                   Presets
                 </Typography>
                 <Grid container spacing={1}>
-                  {COLOR_PRESETS.map((color) => (
-                    <Grid item key={color}>
-                      <Tooltip title={color}>
-                        <Box
-                          onClick={() => setFormData((prev) => ({ ...prev, colour: color }))}
-                          sx={{
-                            width: 30,
-                            height: 30,
-                            bgcolor: color,
-                            borderRadius: 1,
-                            cursor: 'pointer',
-                            border: formData.colour === color ? '2px solid #000' : '1px solid #ccc',
-                            '&:hover': {
-                              opacity: 0.8,
-                            },
-                          }}
-                        />
-                      </Tooltip>
-                    </Grid>
-                  ))}
+                  {COLOR_PRESETS.map((color) => {
+                    const isColorUsed = isColorTaken(color);
+                    return (
+                      <Grid item key={color}>
+                        <Tooltip title={isColorUsed ? 'Color already in use' : color}>
+                          <Box
+                            onClick={() => !isColorUsed && handleColorChange(color)}
+                            sx={{
+                              width: 30,
+                              height: 30,
+                              bgcolor: color,
+                              borderRadius: 1,
+                              cursor: isColorUsed ? 'not-allowed' : 'pointer',
+                              border: formData.colour === color ? '2px solid #000' : '1px solid #ccc',
+                              opacity: isColorUsed ? 0.5 : 1,
+                              '&:hover': {
+                                opacity: isColorUsed ? 0.5 : 0.8,
+                              },
+                              position: 'relative',
+                              '&::after': isColorUsed ? {
+                                content: '""',
+                                position: 'absolute',
+                                top: '50%',
+                                left: 0,
+                                right: 0,
+                                borderTop: '2px solid rgba(0,0,0,0.5)',
+                                transform: 'rotate(-45deg)',
+                              } : {},
+                            }}
+                          />
+                        </Tooltip>
+                      </Grid>
+                    );
+                  })}
                 </Grid>
               </Paper>
             </Stack>
@@ -278,13 +325,18 @@ export const CreateCharacterDrawer = ({
         </Grid>
 
         <Box sx={{ mt: 'auto', pt: 3 }}>
+          {areAllColorsTaken && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              All preset colors are currently in use. Please choose a different color using the color picker.
+            </Alert>
+          )}
           <Button
             fullWidth
             variant="contained"
             color="primary"
             type="submit"
             size="large"
-            disabled={isCurrentPositionOccupied}
+            disabled={isCurrentPositionOccupied || isCurrentColorTaken}
           >
             Create Character
           </Button>

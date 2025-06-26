@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Character, CreateCharacterInput, InteractInput, PlaygroundSetup } from '../types/api';
+import { Character, CreateCharacterInput, PlaygroundSetup } from '../types/api';
 
 const API_BASE_URL = 'https://localhost:7012';
 
@@ -16,11 +16,11 @@ export const getPlaygroundSetup = async (): Promise<PlaygroundSetup> => {
 };
 
 export const createCharacter = async (input: CreateCharacterInput): Promise<Character> => {
-  const response = await api.post<Character>('/Playground/CreateCharacter', input);
+  const response = await api.post<Character>('/Character/CreateCharacter', input);
   return response.data;
 };
 
-export const interactWithCharacter = async (input: InteractInput): Promise<string> => {
-  const response = await api.post<string>('/Interaction/Interact', input);
+export const iteratePlayground = async (): Promise<PlaygroundSetup> => {
+  const response = await api.post<PlaygroundSetup>('/Playground/Iterate');
   return response.data;
 }; 

@@ -41,7 +41,7 @@ public class CharacterRepository : JsonFileStore
         return character;
     }
 
-    public async Task<IList<CharacterEntity>> GetCharactersAsync()
+    public async Task<IEnumerable<CharacterEntity>> GetCharactersAsync()
     {
         var characters = await LoadAsync<List<CharacterEntity>>();
         return characters ?? [];
@@ -79,8 +79,16 @@ public class CharacterRepository : JsonFileStore
         var character = characters?.FirstOrDefault(c => c.Id == characterId)
                ?? throw new KeyNotFoundException($"Character with ID {characterId} not found.");
 
-        var newX = Math.Min(0, Math.Max(PlaygroundConstants.DefaultGridSize, character.GridPosition.Item1 + dx));
-        var newY = Math.Min(0, Math.Max(PlaygroundConstants.DefaultGridSize, character.GridPosition.Item2 + dy));
+        var newX = Math.Max(0, Math.Min(PlaygroundConstants.DefaultGridSize - 1, character.GridPosition.Item1 + dx));
+        var newY = Math.Max(0, Math.Min(PlaygroundConstants.DefaultGridSize - 1, character.GridPosition.Item2 + dy));
+
+        var otherCharacters = characters.Where(c => c.Id != characterId).ToList();
+
+        if (otherCharacters.Any(other => other.GridPosition.Item1 == newX &&
+                                         other.GridPosition.Item2 == newY))
+        {
+            throw new InvalidOperationException($"Cannot move to ({newX}, {newY}) as another character is already there.");
+        }
 
         character.GridPosition = new Tuple<int, int>(newX, newY);
 

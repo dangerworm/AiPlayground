@@ -8,7 +8,7 @@ public static class ServiceCollectionExtensions
             .AddHttpClient();
 
         services
-            .AddScoped<InteractionService>()
+            .AddScoped<CharacterService>()
             .AddScoped<PlaygroundService>();
 
         return services;

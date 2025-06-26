@@ -11,7 +11,7 @@ public class ActionModel
     public required string Description { get; set; }
 
     [JsonPropertyName("input_parameters")]
-    public IList<ActionInputParameterModel>? InputParameters { get; set; }
+    public IEnumerable<ActionInputParameterModel>? InputParameters { get; set; }
 
     public override string ToString()
     {

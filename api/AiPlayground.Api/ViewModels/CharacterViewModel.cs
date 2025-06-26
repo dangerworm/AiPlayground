@@ -24,10 +24,10 @@ namespace AiPlayground.Api.ViewModels
         public string Model { get; }
 
         [JsonPropertyName("responses")]
-        public IList<CharacterResponseViewModel> Responses { get; }
+        public IEnumerable<CharacterResponseViewModel> Responses { get; }
 
         [JsonPropertyName("questions")]
-        public IList<string> Questions { get; }
+        public IEnumerable<string> Questions { get; }
 
         public CharacterViewModel(CharacterDto character)
         {

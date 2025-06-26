@@ -10,63 +10,10 @@
     }
   ],
   "paths": {
-    "/Interaction/Interact": {
+    "/Character/CreateCharacter": {
       "post": {
         "tags": [
-          "Interaction"
-        ],
-        "operationId": "Interact",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InteractInputModel"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InteractInputModel"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/InteractInputModel"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/CharacterViewModel"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CharacterViewModel"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CharacterViewModel"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/Playground/CreateCharacter": {
-      "post": {
-        "tags": [
-          "Playground"
+          "Character"
         ],
         "operationId": "CreateCharacter",
         "requestBody": {
@@ -145,20 +92,53 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlaygroundSetupResponseViewModel"
+                  "$ref": "#/components/schemas/PlaygroundViewModel"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlaygroundSetupResponseViewModel"
+                  "$ref": "#/components/schemas/PlaygroundViewModel"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlaygroundSetupResponseViewModel"
+                  "$ref": "#/components/schemas/PlaygroundViewModel"
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/Playground/Iterate": {
+      "post": {
+        "tags": [
+          "Playground"
+        ],
+        "operationId": "Iterate",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaygroundViewModel"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaygroundViewModel"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaygroundViewModel"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -173,19 +153,23 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "nullable": true
           },
           "desires": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "nullable": true
           },
           "emotion": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "thoughts": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -250,19 +234,7 @@
           }
         }
       },
-      "InteractInputModel": {
-        "required": [
-          "character_id"
-        ],
-        "type": "object",
-        "properties": {
-          "character_id": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "PlaygroundSetupResponseViewModel": {
+      "PlaygroundViewModel": {
         "required": [
           "available_models",
           "characters",
@@ -295,6 +267,13 @@
           "grid_height": {
             "type": "integer",
             "format": "int32"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionViewModel"
+            },
+            "nullable": true
           }
         }
       },
@@ -321,6 +300,22 @@
           "instance": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "QuestionViewModel": {
+        "required": [
+          "character_id",
+          "question"
+        ],
+        "type": "object",
+        "properties": {
+          "character_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "question": {
+            "type": "string"
           }
         }
       },
@@ -363,7 +358,7 @@
   },
   "tags": [
     {
-      "name": "Interaction"
+      "name": "Character"
     },
     {
       "name": "Playground"

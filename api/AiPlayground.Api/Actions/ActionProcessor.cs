@@ -7,7 +7,7 @@ public class ActionProcessor(ActionProvider actionProvider)
 {
     private readonly ActionProvider _actionProvider = actionProvider ?? throw new ArgumentNullException(nameof(actionProvider));
 
-    public async Task<IList<EnvironmentActionResultModel>> ProcessActions(CharacterDto character)
+    public async Task<IEnumerable<EnvironmentActionResultModel>> ProcessActions(CharacterDto character)
     {
         var actions = GetActions();
         var decisions = character.Responses.LastOrDefault()?.Decisions;
@@ -20,7 +20,9 @@ public class ActionProcessor(ActionProvider actionProvider)
         var actionResults = new List<EnvironmentActionResultModel>();
         foreach (var decision in decisions)
         {
-            var command = decision[..decision.IndexOf('(')];
+            var command = decision.Contains('(')
+                ? decision[..decision.IndexOf('(')]
+                : decision;
             
             var action = actions.FirstOrDefault(a => string.Equals(a.GetType().Name, $"{command}Action"));
             if (action is null)
@@ -40,13 +42,12 @@ public class ActionProcessor(ActionProvider actionProvider)
                 ActionName = command,
                 ActionResult = result
             });
-
         }
         
         return actionResults;
     }
 
-    public IList<IAction> GetActions()
+    public IEnumerable<IAction> GetActions()
     {
         return _actionProvider.GetActionInstances();
     }

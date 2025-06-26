@@ -8,7 +8,7 @@ public class OllamaInputModel
     public required string Model { get; set; }
 
     [JsonPropertyName("messages")]
-    public required IList<MessageModel> Messages { get; set; }
+    public required IEnumerable<MessageModel> Messages { get; set; }
 
     [JsonPropertyName("temperature")]
     public required decimal Temperature { get; set; }

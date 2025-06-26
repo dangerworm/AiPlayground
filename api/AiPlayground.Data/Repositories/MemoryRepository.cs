@@ -6,13 +6,13 @@ public class MemoryRepository : JsonFileStore
 {
     protected override string FileName => "Memories.json";
 
-    public async Task<IList<MemoryEntity>> GetMemoriesAsync()
+    public async Task<IEnumerable<MemoryEntity>> GetMemoriesAsync()
     {
         var memory = await LoadAsync<List<MemoryEntity>>();
         return memory ?? [];
     }
     
-    public async Task SaveMemoryAsync(IList<MemoryEntity> memory)
+    public async Task SaveMemoryAsync(IEnumerable<MemoryEntity> memory)
     {
         await SaveAsync(memory);
     }

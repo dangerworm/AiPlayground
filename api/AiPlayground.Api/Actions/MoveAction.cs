@@ -1,7 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using AiPlayground.Api.Attributes;
-using AiPlayground.Core.Constants;
 using AiPlayground.Data.Repositories;
 
 namespace AiPlayground.Api.Actions;
@@ -20,16 +19,25 @@ public class MoveAction(CharacterRepository characterRepository) : ActionBase, I
     [ExampleValue(4)]
     public required int Dy { get; set; }
 
-    public async Task<string?> Run(Guid characterId)
+    public async Task<string> Run(Guid characterId)
     {
-        var character = await _characterRepository.UpdatePositionByDeltaAsync(characterId, Dx, Dy);
+        Dx = Math.Max(-1, Math.Min(1, Dx));
+        Dy = Math.Max(-1, Math.Min(1, Dy));
 
-        return $"You moved to ({character.GridPosition.Item1}, {character.GridPosition.Item2}).";
+        try
+        {
+            var character = await _characterRepository.UpdatePositionByDeltaAsync(characterId, Dx, Dy);
+            return $"You moved to ({character.GridPosition.Item1}, {character.GridPosition.Item2}).";
+        }
+        catch (InvalidOperationException ex)
+        {
+            return ex.Message;
+        }
     }
 
     public override void Setup(string decision)
     {
-        var match = Regex.Match(decision, @"Look\((\d+), ?(\d+)\)");
+        var match = Regex.Match(decision, @$"{GetType().Name[..^6]}\((\d+), ?(\d+)\)");
 
         if (match.Success &&
             int.TryParse(match.Groups[1].Value, out var dx) &&

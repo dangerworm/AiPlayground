@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using AiPlayground.Api.Attributes;
 
 namespace AiPlayground.Api.Actions;
@@ -11,15 +12,20 @@ public class AskAction : ActionBase, IAction
     [ExampleValue("Why am I here?")]
     public required string Question { get; set; }
 
-    public async Task<string?> Run(Guid characterId)
+    public async Task<string> Run(Guid characterId)
     {
         // In a real implementation, this method would process the question and return a response.
         // For now, we will just return a placeholder response.
-        return @$"You asked ""{Question}"". This function is under development and so this is just a placeholder response.";
+        return @$"You asked `{Question}`.";
     }
 
     public override void Setup(string decision)
     {
-        throw new NotImplementedException();
+        var match = Regex.Match(decision, @$"{GetType().Name[..^6]}\([""'](.*)[""']\)");
+
+        if (match.Success)
+        {
+            Question = match.Groups[1].Value;
+        }
     }
 }

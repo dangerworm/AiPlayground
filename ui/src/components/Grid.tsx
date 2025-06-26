@@ -3,6 +3,12 @@ import { OrbitControls, Grid as DreiGrid } from '@react-three/drei';
 import { useMemo, useState, useRef } from 'react';
 import * as THREE from 'three';
 import type { Character, PlaygroundSetup, GridPosition } from '../types/api';
+import { SpeechBubble } from './SpeechBubble';
+
+type SpeechData = {
+  text: string;
+  projectionLevel: number;
+};
 
 type GridProps = {
   setup: PlaygroundSetup;
@@ -74,6 +80,40 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
     }
   };
 
+  // Get the last speak decision for a character
+  const getLastSpeakDecision = (character: Character): SpeechData | null => {
+    if (!character.responses?.length) return null;
+    
+    const lastResponse = character.responses[character.responses.length - 1];
+    if (!lastResponse.decisions?.length) return null;
+
+    // Find the last speak decision
+    const speakDecision = lastResponse.decisions.find(d => d.startsWith('Speak('));
+    if (!speakDecision) return null;
+
+    try {
+      // Extract text and projection level from Speak('text', level)
+      const match = speakDecision.match(/Speak\('([^']+)',\s*(\d+)\)/);
+      if (!match) {
+        // Try double quotes as fallback
+        const doubleQuoteMatch = speakDecision.match(/Speak\("([^"]+)",\s*(\d+)\)/);
+        if (!doubleQuoteMatch) return null;
+        return {
+          text: doubleQuoteMatch[1],
+          projectionLevel: parseInt(doubleQuoteMatch[2], 10)
+        };
+      }
+
+      return {
+        text: match[1],
+        projectionLevel: parseInt(match[2], 10)
+      };
+    } catch (err) {
+      console.error('Failed to parse speak decision:', err);
+      return null;
+    }
+  };
+
   return (
     <>
       <OrbitControls 
@@ -139,25 +179,44 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
         </mesh>
       )}
 
-      {/* Characters */}
-      {setup.characters.map((character) => (
-        <mesh
-          key={character.id}
-          position={[
-            character.grid_position.item1 * setup.cell_size + setup.cell_size / 2,
-            setup.cell_size / 2,
-            character.grid_position.item2 * setup.cell_size + setup.cell_size / 2
-          ]}
-          onClick={() => onCharacterClick(character)}
-        >
-          <sphereGeometry args={[setup.cell_size / 3]} />
-          <meshStandardMaterial 
-            color={character.colour}
-            roughness={0.3}
-            metalness={0.2}
-          />
-        </mesh>
-      ))}
+      {/* Characters and their speech bubbles */}
+      {setup.characters.map((character) => {
+        const characterPosition = [
+          character.grid_position.item1 * setup.cell_size + setup.cell_size / 2,
+          setup.cell_size - (setup.cell_size * 0.5),
+          character.grid_position.item2 * setup.cell_size + setup.cell_size / 2
+        ] as [number, number, number];
+
+        const speechData = getLastSpeakDecision(character);
+
+        return (
+          <group key={character.id}>
+            <mesh
+              position={characterPosition}
+              onClick={() => onCharacterClick(character)}
+            >
+              <icosahedronGeometry args={[setup.cell_size / 3]} />
+              <meshStandardMaterial 
+                color={character.colour}
+                roughness={0.3}
+                metalness={0.4}
+              />
+            </mesh>
+
+            {speechData && (
+              <>
+                <SpeechBubble
+                  text={speechData.text}
+                  position={characterPosition}
+                  characterColor={character.colour}
+                  projectionLevel={speechData.projectionLevel}
+                  cellSize={setup.cell_size}
+                />
+              </>
+            )}
+          </group>
+        );
+      })}
     </>
   );
 }; 

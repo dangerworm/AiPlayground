@@ -8,7 +8,7 @@ public class EnvironmentInputModel : ICorrelated
     public Guid? CorrelationId { get; set; }
 
     [JsonPropertyName("action_results")]
-    public IList<EnvironmentActionResultModel> ActionResults { get; set; } = [];
+    public IEnumerable<EnvironmentActionResultModel> ActionResults { get; set; } = [];
 
     [JsonPropertyName("age")]
     public required int Age { get; set; }
@@ -23,7 +23,7 @@ public class EnvironmentInputModel : ICorrelated
     public required int Iteration { get; set; }
 
     [JsonPropertyName("sounds")]
-    public IList<EnvironmentSoundModel> Sounds { get; set; } = [];
+    public IEnumerable<EnvironmentSoundModel> Sounds { get; set; } = [];
 
     [JsonPropertyName("time")]
     public required int Time { get; set; }

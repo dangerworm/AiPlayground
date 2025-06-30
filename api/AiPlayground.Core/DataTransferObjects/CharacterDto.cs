@@ -7,7 +7,6 @@ public class CharacterDto
     public CharacterDto(
         Guid id,
         DateTime createdAt,
-        ConnectionDto connection,
         int ageInIterations,
         int createdInIteration,
         string colour,
@@ -19,7 +18,6 @@ public class CharacterDto
     {
         Id = id;
         CreatedAt = createdAt;
-        Connection = connection;
         AgeInIterations = ageInIterations;
         CreatedInIteration = createdInIteration;
         Colour = colour;
@@ -31,7 +29,6 @@ public class CharacterDto
 
     public Guid Id { get; }
     public DateTime CreatedAt { get; }
-    public ConnectionDto Connection { get; }
     public int AgeInIterations { get; }
     public int CreatedInIteration { get; }
     public string Colour { get; }

@@ -103,11 +103,16 @@ namespace AiPlayground.Api.Actions
 
         private static List<ActionInputParameterModel>? GetInputParameters(Type action)
         {
-            var actionInputParameters = new List<ActionInputParameterModel>();
+            var ignoredProperties = new HashSet<string>
+            {
+                nameof(ActionBase.ActionType),
+                nameof(ActionBase.Description)
+            };
 
             var actionProperties = action.GetProperties()
-                .Where(property => !string.Equals(property.Name, nameof(ActionBase.Description)));
+                .Where(property => !ignoredProperties.Contains(property.Name));
 
+            var actionInputParameters = new List<ActionInputParameterModel>();
             foreach (var property in actionProperties)
             {
                 var jsonName = GetAttributeProperty<JsonPropertyNameAttribute>(property, action.Name, "Name");

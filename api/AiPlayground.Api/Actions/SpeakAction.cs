@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using AiPlayground.Api.Attributes;
 using AiPlayground.Core.Constants;
+using AiPlayground.Core.Enums;
 using AiPlayground.Data.Repositories;
 
 namespace AiPlayground.Api.Actions;
@@ -11,6 +11,7 @@ public class SpeakAction(CharacterRepository characterRepository) : ActionBase, 
 {
     private CharacterRepository _characterRepository = characterRepository;
 
+    public override ActionType ActionType => ActionType.ActionBased;
     public override string Description => "Speak the string aloud, projecting to a radius of 'projection' across the grid.";
 
     [JsonPropertyName("message")]

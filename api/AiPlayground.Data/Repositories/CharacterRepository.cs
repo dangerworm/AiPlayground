@@ -9,24 +9,13 @@ public class CharacterRepository : JsonFileStore
 {
     protected override string FileName => "Characters.json";
 
-    public async Task<CharacterEntity> CreateCharacterAsync(int createdInIteration, string colour, ConnectionDto connectionDto, Tuple<int, int> gridPosition)
+    public async Task<CharacterEntity> CreateCharacterAsync(int createdInIteration, string colour, Tuple<int, int> gridPosition)
     {
-        var connection = new ConnectionEntity
-        {
-            Id = connectionDto.Id,
-            Endpoint = connectionDto.Endpoint,
-            Model = connectionDto.Model,
-            Host = connectionDto.Host,
-            Port = connectionDto.Port,
-            Temperature = connectionDto.Temperature
-        };
-
         var character = new CharacterEntity
         {
             AgeInIterations = 0,
             CreatedInIteration = createdInIteration,
             Colour = colour,
-            Connection = connection,
             GridPosition = gridPosition,
             Inputs = [],
             Responses = [],

@@ -16,19 +16,35 @@ import {
   Tooltip,
 } from '@mui/material';
 import { Visibility } from '@mui/icons-material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Character } from '../types/api';
 
 type IterationSummaryDialogProps = {
   open: boolean;
   onClose: () => void;
   characters: Character[];
+  autoIterate?: boolean;
 };
 
-export const IterationSummaryDialog = ({ open, onClose, characters }: IterationSummaryDialogProps) => {
+export const IterationSummaryDialog = ({ 
+  open, 
+  onClose, 
+  characters,
+  autoIterate = false,
+}: IterationSummaryDialogProps) => {
   const [isCompact, setIsCompact] = useState(false);
   const [opacity, setOpacity] = useState(1);
   
+  // Auto-close when auto-iterate is enabled
+  useEffect(() => {
+    if (open && autoIterate) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 2000); // Close after 2 seconds when auto-iterating
+      return () => clearTimeout(timer);
+    }
+  }, [open, autoIterate, onClose]);
+
   // Get the latest response for each character
   const getLatestResponse = (character: Character) => {
     if (!character.responses?.length) return null;

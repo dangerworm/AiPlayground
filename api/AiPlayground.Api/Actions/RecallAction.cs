@@ -1,11 +1,13 @@
 ﻿using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using AiPlayground.Api.Attributes;
+using AiPlayground.Core.Enums;
 
 namespace AiPlayground.Api.Actions;
 
 public class RecallAction : ActionBase, IAction
 {
+    public override ActionType ActionType => ActionType.CharacterBased;
     public override string Description => "Recall a memory from your vector database.";
 
     [JsonPropertyName("query")]

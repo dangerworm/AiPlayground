@@ -2,9 +2,11 @@
 using System.Threading.Tasks;
 using AiPlayground.Api.Actions;
 using AiPlayground.Core.DataTransferObjects;
+using AiPlayground.Core.Enums;
 using AiPlayground.Core.Models;
 using AiPlayground.Core.Models.Conversations;
 using AiPlayground.Data.Repositories;
+using OpenAI.Chat;
 
 namespace AiPlayground.Api.Workflows;
 
@@ -21,15 +23,22 @@ public class CharacterWorkflow(
     private readonly ModelRepository _modelRepository = modelRepository ?? throw new ArgumentNullException(nameof(modelRepository));
     private readonly PlaygroundRepository _playgroundRepository = playgroundRepository ?? throw new ArgumentNullException(nameof(playgroundRepository));
 
+    private readonly IList<ActionType> _actionOrder =
+    [
+        ActionType.EnvironmentBased,
+        ActionType.CharacterBased,
+        ActionType.ActionBased
+    ];
+
     public IEnumerable<string> GetAvailableModels()
     {
         return _modelRepository.GetModels();
     }
 
-    public async Task<CharacterDto> CreateCharacterAsync(string colour, ConnectionDto connection, Tuple<int, int> gridPosition)
+    public async Task<CharacterDto> CreateCharacterAsync(string colour, Tuple<int, int> gridPosition)
     {
         var playground = await _playgroundRepository.GetPlaygroundAsync();
-        var character = await _characterRepository.CreateCharacterAsync(playground.Iterations, colour, connection, gridPosition);
+        var character = await _characterRepository.CreateCharacterAsync(playground.Iterations, colour, gridPosition);
         return character.AsDto();
     }
 
@@ -58,8 +67,8 @@ public class CharacterWorkflow(
     }
 
     public async Task<CharacterDto> AddIterationMessagesAsync(
-        Guid characterId, 
-        EnvironmentInputModel input, 
+        Guid characterId,
+        EnvironmentInputModel input,
         CharacterResponseModel response
     )
     {
@@ -75,7 +84,18 @@ public class CharacterWorkflow(
     public async Task<EnvironmentInputModel> BuildEnvironmentInputAsync(Guid characterId)
     {
         var character = await _characterRepository.GetCharacterByIdAsync(characterId);
-        var actionResults = await _actionProcessor.ProcessActions(character.AsDto());
+        
+        var actionResults = new List<EnvironmentActionResultModel>();
+        foreach (var actionType in _actionOrder)
+        {
+            var results = await _actionProcessor.ProcessActions(character.AsDto(), actionType);
+            if (results.Any())
+            {
+                Logger.LogInformation("Processed {ActionType} actions for character {CharacterId}.", actionType, characterId);
+                actionResults.AddRange(results);
+            }
+        }
+
         var playground = await _playgroundRepository.GetPlaygroundAsync();
 
         var input = new EnvironmentInputModel
@@ -92,7 +112,7 @@ public class CharacterWorkflow(
         return input;
     }
 
-    public async Task<IEnumerable<MessageModel>> BuildCorrelatedChatHistoryAsync(Guid characterId)
+    public async Task<IEnumerable<ChatMessage>> BuildCorrelatedChatHistoryAsync(Guid characterId)
     {
         var character = await GetCharacterByIdAsync(characterId);
 
@@ -103,7 +123,7 @@ public class CharacterWorkflow(
             .Union(responses)
             .GroupBy(message => message.CorrelationId);
 
-        var messages = new List<MessageModel>();
+        var messages = new List<ChatMessage>();
         foreach (var group in messageGroups)
         {
             if (group.FirstOrDefault(m => m is EnvironmentInputModel) is not EnvironmentInputModel input ||
@@ -117,8 +137,8 @@ public class CharacterWorkflow(
             input.CorrelationId = null;
             response.CorrelationId = null;
 
-            messages.Add(new MessageModel { Role = "user", Content = JsonSerializer.Serialize(input) });
-            messages.Add(new MessageModel { Role = "assistant", Content = JsonSerializer.Serialize(response) });
+            messages.Add(new UserChatMessage(JsonSerializer.Serialize(input)));
+            messages.Add(new AssistantChatMessage(JsonSerializer.Serialize(response)));
         }
 
         return messages;

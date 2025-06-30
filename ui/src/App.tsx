@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Box, Button, CircularProgress, Container, Fab, Typography, Paper } from '@mui/material';
+import { Box, Button, CircularProgress, Container, Fab, Typography, Paper, Switch, FormControlLabel } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { Character, PlaygroundSetup, GridPosition, CreateCharacterInput } from './types/api';
@@ -19,6 +19,7 @@ function App() {
   const [hasUnansweredQuestions, setHasUnansweredQuestions] = useState(false);
   const [showQuestionDialog, setShowQuestionDialog] = useState(false);
   const [showSummaryDialog, setShowSummaryDialog] = useState(false);
+  const [autoIterate, setAutoIterate] = useState(false);
   
   const [createDrawerOpen, setCreateDrawerOpen] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
@@ -76,7 +77,9 @@ function App() {
     setSelectedPosition(undefined);
   };
 
-  const handleIterate = async () => {
+  const handleIterate = useCallback(async () => {
+    if (hasUnansweredQuestions || isIterating) return;
+    
     try {
       setIsIterating(true);
       const updatedSetup = await iteratePlayground();
@@ -90,6 +93,10 @@ function App() {
       setHasUnansweredQuestions(hasQuestions);
       if (hasQuestions) {
         setShowQuestionDialog(true);
+        setAutoIterate(false); // Disable auto-iteration when questions need to be answered
+      } else if (autoIterate) {
+        // Schedule next iteration if auto-iterate is enabled and no questions
+        setTimeout(handleIterate, 2000); // 2 second delay between iterations to make it easier to follow
       }
       
       // Update the selected character with the new data if one is selected
@@ -102,10 +109,11 @@ function App() {
     } catch (err) {
       console.error('Failed to iterate characters:', err);
       setError('Failed to iterate characters');
+      setAutoIterate(false); // Disable auto-iteration on error
     } finally {
       setIsIterating(false);
     }
-  };
+  }, [hasUnansweredQuestions, isIterating, selectedCharacter, autoIterate]);
 
   const handleAnswerSubmit = async (answers: Record<string, string>) => {
     try {
@@ -118,6 +126,11 @@ function App() {
       
       // Refresh the playground to get the updated state
       await loadPlaygroundSetup();
+
+      // Resume auto-iteration if it was enabled
+      if (autoIterate) {
+        handleIterate();
+      }
     } catch (err) {
       console.error('Failed to submit answers:', err);
       setError('Failed to submit answers');
@@ -175,16 +188,33 @@ function App() {
         </Box>
         
         {setup.characters.length > 0 && (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleIterate}
-            disabled={isIterating || hasUnansweredQuestions}
-            startIcon={isIterating ? <CircularProgress size={20} /> : <PlayArrowIcon />}
-            sx={{ height: 'fit-content' }}
-          >
-            {isIterating ? 'Iterating...' : hasUnansweredQuestions ? 'Answer Questions to Continue' : 'Iterate'}
-          </Button>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={autoIterate}
+                  onChange={(e) => {
+                    setAutoIterate(e.target.checked);
+                    if (e.target.checked && !isIterating && !hasUnansweredQuestions) {
+                      handleIterate();
+                    }
+                  }}
+                  disabled={isIterating || hasUnansweredQuestions}
+                />
+              }
+              label="Auto-iterate"
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleIterate}
+              disabled={isIterating || hasUnansweredQuestions}
+              startIcon={isIterating ? <CircularProgress size={20} /> : <PlayArrowIcon />}
+              sx={{ height: 'fit-content' }}
+            >
+              {isIterating ? 'Iterating...' : hasUnansweredQuestions ? 'Answer Questions to Continue' : 'Iterate'}
+            </Button>
+          </Box>
         )}
       </Paper>
 
@@ -231,6 +261,7 @@ function App() {
         open={showSummaryDialog}
         onClose={() => setShowSummaryDialog(false)}
         characters={setup.characters}
+        autoIterate={autoIterate}
       />
     </Box>
   );

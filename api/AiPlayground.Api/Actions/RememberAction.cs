@@ -1,11 +1,13 @@
 ﻿using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using AiPlayground.Api.Attributes;
+using AiPlayground.Core.Enums;
 
 namespace AiPlayground.Api.Actions;
 
 public class RememberAction : ActionBase, IAction
 {
+    public override ActionType ActionType => ActionType.CharacterBased;
     public override string Description => "Remember a fact.";
 
     [JsonPropertyName("memory")]

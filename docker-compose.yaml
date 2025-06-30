@@ -1,0 +1,20 @@
+services:
+  vllm:
+    image: vllm/vllm-openai:v0.5.3 # released about 10 months ago, compatible with CUDA 11.8 
+    container_name: vLLM
+    runtime: nvidia
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
+    ports:
+      - "8000:8000"
+    volumes:
+      - D:/HuggingFace/.cache:/root/.cache/huggingface
+    ipc: host
+    command: 
+      [
+        "--model", "mistralai/Mistral-7B-Instruct-v0.3",
+        "--dtype", "float16",                # Uses less VRAM
+        "--max-model-len", "2048",           # Reduce context length to save memory
+        "--max-num-seqs", "1",               # Only one sequence at a time
+        "--swap-space", "4"                  # Use RAM if GPU runs out
+      ]

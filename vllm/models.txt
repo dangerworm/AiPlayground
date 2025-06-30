@@ -1,0 +1,5 @@
+meta-llama/Meta-Llama-3-8B-Instruct
+mistralai/Mistral-7B-Instruct-v0.3
+microsoft/Phi-3-mini-128k-instruct		
+NousResearch/Nous-Hermes-2-Mistral-7B
+tiiuae/falcon-7b-instruct

@@ -1,4 +1,5 @@
 ﻿using AiPlayground.Core.DataTransferObjects;
+using AiPlayground.Core.Enums;
 using AiPlayground.Core.Models.Conversations;
 
 namespace AiPlayground.Api.Actions;
@@ -7,10 +8,15 @@ public class ActionProcessor(ActionProvider actionProvider)
 {
     private readonly ActionProvider _actionProvider = actionProvider ?? throw new ArgumentNullException(nameof(actionProvider));
 
-    public async Task<IEnumerable<EnvironmentActionResultModel>> ProcessActions(CharacterDto character)
+    public async Task<IEnumerable<EnvironmentActionResultModel>> ProcessActions(CharacterDto character, ActionType actionType)
     {
-        var actions = GetActions();
-        var decisions = character.Responses.LastOrDefault()?.Decisions;
+        var actions = GetActions()
+            .Where(action => action.ActionType.Equals(actionType));
+
+        var decisions = character
+            .Responses
+            .LastOrDefault()?
+            .Decisions;
 
         if (decisions is null || !decisions.Any())
         {

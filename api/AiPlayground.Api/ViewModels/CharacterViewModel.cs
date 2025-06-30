@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using AiPlayground.Core.Constants;
 using AiPlayground.Core.DataTransferObjects;
 
 namespace AiPlayground.Api.ViewModels
@@ -36,7 +37,7 @@ namespace AiPlayground.Api.ViewModels
             Age = character.AgeInIterations;
             Colour = character.Colour;
             GridPosition = character.GridPosition;
-            Model = character.Connection.Model;
+            Model = "GPT 4.1";
             Responses = [.. character.Responses.Select(r => new CharacterResponseViewModel(r))];
             Questions = character.Questions;
         }

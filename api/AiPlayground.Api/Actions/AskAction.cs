@@ -1,11 +1,13 @@
 ﻿using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using AiPlayground.Api.Attributes;
+using AiPlayground.Core.Enums;
 
 namespace AiPlayground.Api.Actions;
 
 public class AskAction : ActionBase, IAction
 {
+    public override ActionType ActionType => ActionType.CharacterBased;
     public override string Description => "Ask a question to a human for further information.";
 
     [JsonPropertyName("question")]

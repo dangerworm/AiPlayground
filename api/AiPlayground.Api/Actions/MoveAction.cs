@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using AiPlayground.Api.Attributes;
+using AiPlayground.Core.Enums;
 using AiPlayground.Data.Repositories;
 
 namespace AiPlayground.Api.Actions;
@@ -9,6 +10,7 @@ public class MoveAction(CharacterRepository characterRepository) : ActionBase, I
 {
     private CharacterRepository _characterRepository = characterRepository;
     
+    public override ActionType ActionType => ActionType.ActionBased;
     public override string Description => "Move in the direction specified by dx and dy where -1 <= dx <= 1 and -1 <= dy <= 1.";
 
     [JsonPropertyName("dx")]

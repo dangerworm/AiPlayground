@@ -1,6 +1,8 @@
 ﻿using AiPlayground.Api.Actions;
+using AiPlayground.Api.OpenAI;
 using AiPlayground.Api.Services;
 using AiPlayground.Api.Workflows;
+using AiPlayground.Core.Models.Configuration;
 using AiPlayground.Data;
 
 namespace AiPlayground.Api;
@@ -23,9 +25,10 @@ public class Startup
         });
 
         services
+            .AddAzureOpenAiChatClient(configuration)
             .AddProviders()
             .AddRepositories()
-            .AddWorkflows()
+            .AddWorkflows(configuration)
             .AddServices();
 
         services.AddControllers();

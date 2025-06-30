@@ -1,7 +1,10 @@
-﻿namespace AiPlayground.Api.Actions;
+﻿using AiPlayground.Core.Enums;
+
+namespace AiPlayground.Api.Actions;
 
 public class ThinkAction : ActionBase, IAction
 {
+    public override ActionType ActionType => ActionType.CharacterBased;
     public override string Description => "Continue your internal monologue without taking action.";
 
     public async Task<string> Run(Guid characterId)

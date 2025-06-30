@@ -1,14 +1,14 @@
 ﻿namespace AiPlayground.Core.Constants
 {
-    public class PlaygroundConstants
+    public static class PlaygroundConstants
     {
-        public static IEnumerable<string> AvailableModels =
-        [
-            "llama3.1:8b",
-            "mistral",
-        ];
-
         public const int DefaultCellSizePixels = 20;
         public const int DefaultGridSize = 10;
+        public const string Gpt41 = "gpt-4.1";
+
+        public static IEnumerable<string> AvailableModels =
+        [
+            Gpt41,
+        ];
     }
 }

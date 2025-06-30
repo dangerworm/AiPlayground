@@ -2,6 +2,11 @@ using AiPlayground.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
+
 var startup = new Startup();
 startup.ConfigureServices(builder.Configuration, builder.Services);
 

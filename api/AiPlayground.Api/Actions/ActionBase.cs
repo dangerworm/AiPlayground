@@ -4,7 +4,7 @@ namespace AiPlayground.Api.Actions;
 
 public abstract class ActionBase
 {
-    public abstract ActionType ActionType { get; }
+    public abstract ActionType Type { get; }
 
     public abstract string Description { get; }
 

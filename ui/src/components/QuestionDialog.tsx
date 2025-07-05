@@ -10,102 +10,99 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useState } from 'react';
-import { Character } from '../types/api';
+import { Question, Character } from '../types/api';
 
-type QuestionDialogProps = {
+interface QuestionDialogProps {
   open: boolean;
+  questions: Question[];
   characters: Character[];
+  onClose: () => void;
   onSubmit: (answers: Record<string, string>) => void;
-};
+}
 
-export const QuestionDialog = ({ open, characters, onSubmit }: QuestionDialogProps) => {
-  // Create a map of character ID -> answer for each question
+export function QuestionDialog({ open, questions, characters, onClose, onSubmit }: QuestionDialogProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Get characters that have questions
-  const charactersWithQuestions = characters.filter(char => char.questions && char.questions.length > 0);
-
-  const handleAnswerChange = (characterId: string, answer: string) => {
-    setAnswers(prev => ({
-      ...prev,
-      [characterId]: answer
-    }));
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      await onSubmit(answers);
-    } finally {
-      setIsSubmitting(false);
-      setAnswers({});  // Reset answers after submission
+  const handleSubmit = () => {
+    // Validate that all questions have answers
+    const unansweredQuestions = questions.filter(q => !answers[q.id]?.trim());
+    if (unansweredQuestions.length > 0) {
+      setError('Please answer all questions before proceeding');
+      return;
     }
+
+    setError(null);
+    onSubmit(answers);
+    setAnswers({});
   };
 
-  // Check if all questions have been answered
-  const areAllQuestionsAnswered = charactersWithQuestions.every(char => answers[char.id]?.trim());
+  const getCharacterForQuestion = (question: Question) => {
+    return characters.find(c => c.id === question.character_id);
+  };
 
   return (
     <Dialog 
       open={open} 
-      maxWidth="md" 
+      onClose={onClose}
+      maxWidth="sm"
       fullWidth
-      disableEscapeKeyDown
-      disableBackdropClick
     >
-      <DialogTitle>Answer Character Questions</DialogTitle>
+      <DialogTitle>Questions from Characters</DialogTitle>
       <DialogContent>
-        <Typography variant="body1" color="text.secondary" paragraph>
-          Some characters have questions for you. Please answer them to continue.
-        </Typography>
-        
-        {charactersWithQuestions.map((character) => (
-          <Box key={character.id} sx={{ mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <Box
-                sx={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: '50%',
-                  backgroundColor: character.colour,
-                  mr: 1,
-                }}
-              />
-              <Typography variant="subtitle1">
-                Character at ({character.grid_position.item1}, {character.grid_position.item2})
-              </Typography>
-            </Box>
-            
-            {character.questions?.map((question, index) => (
-              <Box key={index} sx={{ ml: 3, mb: 2 }}>
-                <Typography variant="body1" gutterBottom>
-                  {question}
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  placeholder="Type your answer here..."
-                  value={answers[character.id] || ''}
-                  onChange={(e) => handleAnswerChange(character.id, e.target.value)}
-                  disabled={isSubmitting}
-                />
+        {error && (
+          <Typography color="error" sx={{ mb: 2 }}>
+            {error}
+          </Typography>
+        )}
+        {questions.map((question) => {
+          const character = getCharacterForQuestion(question);
+          return (
+            <Box key={question.id} sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                {character && (
+                  <>
+                    <Box
+                      sx={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: '50%',
+                        bgcolor: character.colour,
+                        mr: 1,
+                      }}
+                    />
+                    <Typography variant="subtitle2" color="text.secondary">
+                      {character.name}
+                    </Typography>
+                  </>
+                )}
               </Box>
-            ))}
-          </Box>
-        ))}
+              <Typography variant="body1" gutterBottom>
+                {question.question}
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={2}
+                variant="outlined"
+                placeholder="Type your answer here..."
+                value={answers[question.id] || ''}
+                onChange={(e) => {
+                  setAnswers(prev => ({ ...prev, [question.id]: e.target.value }));
+                  setError(null); // Clear error when user types
+                }}
+                error={error !== null && !answers[question.id]?.trim()}
+                sx={{ mt: 1 }}
+              />
+            </Box>
+          );
+        })}
       </DialogContent>
       <DialogActions>
-        <Button
-          variant="contained"
-          onClick={handleSubmit}
-          disabled={!areAllQuestionsAnswered || isSubmitting}
-          startIcon={isSubmitting && <CircularProgress size={20} />}
-        >
-          {isSubmitting ? 'Submitting...' : 'Submit Answers'}
+        <Button onClick={handleSubmit} variant="contained" disabled={questions.length === 0}>
+          Submit Answers
         </Button>
       </DialogActions>
     </Dialog>
   );
-}; 
+} 

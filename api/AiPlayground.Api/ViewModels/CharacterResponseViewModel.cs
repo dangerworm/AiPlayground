@@ -3,25 +3,17 @@ using AiPlayground.Core.Models.Conversations;
 
 namespace AiPlayground.Api.ViewModels;
 
-public class CharacterResponseViewModel
+public class CharacterResponseViewModel(CharacterResponseModel response)
 {
     [JsonPropertyName("decisions")]
-    public IEnumerable<string>? Decisions { get; set; } = [];
+    public IEnumerable<string>? Decisions { get; set; } = response.Decisions;
 
     [JsonPropertyName("desires")]
-    public IEnumerable<string>? Desires { get; set; } = [];
+    public IEnumerable<string>? Desires { get; set; } = response.Desires;
 
     [JsonPropertyName("emotion")]
-    public string? Emotion { get; set; } = string.Empty;
+    public string? Emotion { get; set; } = response.Emotion;
 
     [JsonPropertyName("thoughts")]
-    public string? Thoughts { get; set; } = string.Empty;
-
-    public CharacterResponseViewModel(CharacterResponseModel response)
-    {
-        Decisions = response.Decisions;
-        Desires = response.Desires;
-        Emotion = response.Emotion;
-        Thoughts = response.Thoughts;
-    }
+    public string? Thoughts { get; set; } = response.Thoughts;
 }

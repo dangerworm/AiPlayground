@@ -2,23 +2,40 @@
 using System.Text.RegularExpressions;
 using AiPlayground.Api.Attributes;
 using AiPlayground.Core.Enums;
+using AiPlayground.Data.Repositories;
 
 namespace AiPlayground.Api.Actions;
 
-public class AskAction : ActionBase, IAction
+public class AskAction(CharacterRepository characterRepository) : ActionBase, IAction
 {
-    public override ActionType ActionType => ActionType.CharacterBased;
+    private readonly CharacterRepository _characterRepository = characterRepository ?? throw new ArgumentNullException(nameof(characterRepository));
+
+    [IgnorePropertyDuringProcessing]
+    public override ActionType Type => ActionType.CharacterBased;
+
+    [IgnorePropertyDuringProcessing]
     public override string Description => "Ask a question to a human for further information.";
 
     [JsonPropertyName("question")]
     [ExampleValue("Why am I here?")]
     public required string Question { get; set; }
 
-    public async Task<string> Run(Guid characterId)
+
+    public async Task<string> PreIteration(Guid characterId)
     {
-        // In a real implementation, this method would process the question and return a response.
-        // For now, we will just return a placeholder response.
-        return @$"You asked `{Question}`.";
+        var character = await _characterRepository.GetCharacterByIdAsync(characterId);
+        var question = character.QuestionsAndAnswers.FirstOrDefault(q => string.Equals(q.Question, Question));
+        if (question is not null && question.Answer is not null)
+        {
+            return @$"You asked `{Question}` and received the answer: `{question.Answer}`.";
+        }
+
+        return string.Empty;
+    }
+
+    public async Task PostIteration(Guid characterId)
+    {
+        await _characterRepository.AddQuestion(characterId, Question);
     }
 
     public override void Setup(string decision)

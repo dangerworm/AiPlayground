@@ -12,18 +12,19 @@ type SpeechData = {
 
 type GridProps = {
   setup: PlaygroundSetup;
-  onCharacterClick: (character: Character) => void;
   onEmptyCellClick: (position: GridPosition) => void;
 };
 
-export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) => {
+const CELL_SIZE = 10;
+
+export const Grid = ({ setup, onEmptyCellClick }: GridProps) => {
   const { camera, raycaster, mouse } = useThree();
-  const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
+  const [hoveredCell, setHoveredCell] = useState<GridPosition | null>(null);
   const groundRef = useRef<THREE.Mesh>(null);
   const controlsRef = useRef<any>(null);
 
-  const gridWidth = setup.grid_width * setup.cell_size;
-  const gridHeight = setup.grid_height * setup.cell_size;
+  const gridWidth = setup.grid_width * CELL_SIZE;
+  const gridHeight = setup.grid_height * CELL_SIZE;
   
   // Calculate grid center
   const centerX = gridWidth / 2;
@@ -31,7 +32,7 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
 
   // Center camera on grid
   useMemo(() => {
-    camera.position.set(centerX, 50, centerZ + 100);
+    camera.position.set(centerX, 100, centerZ + 200);
     camera.lookAt(centerX, 0, centerZ);
   }, [camera, centerX, centerZ]);
 
@@ -45,38 +46,31 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
 
     if (intersects.length > 0) {
       const point = intersects[0].point;
-      const x = Math.floor(point.x / setup.cell_size);
-      const y = Math.floor(point.z / setup.cell_size);
+      const x = Math.floor(point.x / CELL_SIZE);
+      const y = Math.floor(point.z / CELL_SIZE);
 
       // Only update if within grid bounds
       if (x >= 0 && x < setup.grid_width && y >= 0 && y < setup.grid_height) {
-        setHoverPosition({ x, y });
+        setHoveredCell({ item1: x, item2: y });
       } else {
-        setHoverPosition(null);
+        setHoveredCell(null);
       }
     } else {
-      setHoverPosition(null);
+      setHoveredCell(null);
     }
   });
 
-  // Check if a position is occupied by a character
-  const isPositionOccupied = (x: number, y: number) => {
-    return setup.characters.some(
-      char => char.grid_position.item1 === x && char.grid_position.item2 === y
-    );
-  };
+  // Create a lookup of character positions for quick access
+  const characterPositions = new Map(
+    setup.characters.map(char => [`${char.grid_position.item1},${char.grid_position.item2}`, char])
+  );
 
-  // Handle ground plane click
-  const handleGroundClick = (event: ThreeEvent<MouseEvent>) => {
-    event.stopPropagation();
+  const handleCellClick = (x: number, y: number) => {
+    const position = { item1: x, item2: y };
+    const key = `${x},${y}`;
     
-    if (!hoverPosition) return;
-    
-    const { x, y } = hoverPosition;
-    
-    // Only trigger for empty cells
-    if (!isPositionOccupied(x, y)) {
-      onEmptyCellClick({ item1: x, item2: y });
+    if (!characterPositions.has(key)) {
+      onEmptyCellClick(position);
     }
   };
 
@@ -118,8 +112,8 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
     <>
       <OrbitControls 
         ref={controlsRef}
-        minDistance={20} 
-        maxDistance={200}
+        minDistance={50} 
+        maxDistance={500}
         maxPolarAngle={Math.PI / 2 - 0.1} // Prevent camera from going below ground
         target={new THREE.Vector3(centerX, 0, centerZ)} // Set orbit center to grid center
       />
@@ -140,7 +134,7 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
         ref={groundRef}
         rotation={[-Math.PI / 2, 0, 0]} 
         position={[centerX, -0.1, centerZ]}
-        onClick={handleGroundClick}
+        onClick={() => handleCellClick(hoveredCell?.item1 || 0, hoveredCell?.item2 || 0)}
       >
         <planeGeometry args={[gridWidth + 2, gridHeight + 2]} />
         <meshStandardMaterial color="#f0f0f0" />
@@ -150,10 +144,10 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
       <DreiGrid
         position={[centerX, 0, centerZ]}
         args={[gridWidth + 1, gridHeight + 1]}
-        cellSize={setup.cell_size}
+        cellSize={CELL_SIZE}
         cellThickness={0.5}
         cellColor="#a0a0a0"
-        sectionSize={setup.cell_size}
+        sectionSize={CELL_SIZE}
         sectionThickness={1}
         sectionColor="#808080"
         fadeDistance={150}
@@ -162,15 +156,15 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
       />
 
       {/* Hover indicator */}
-      {hoverPosition && !isPositionOccupied(hoverPosition.x, hoverPosition.y) && (
+      {hoveredCell && !characterPositions.has(`${hoveredCell.item1},${hoveredCell.item2}`) && (
         <mesh
           position={[
-            hoverPosition.x * setup.cell_size + setup.cell_size / 2,
-            0.1,
-            hoverPosition.y * setup.cell_size + setup.cell_size / 2
+            hoveredCell.item1 * CELL_SIZE + CELL_SIZE / 2,
+            0.2,
+            hoveredCell.item2 * CELL_SIZE + CELL_SIZE / 2
           ]}
         >
-          <boxGeometry args={[setup.cell_size, 0.1, setup.cell_size]} />
+          <boxGeometry args={[CELL_SIZE * 0.9, 0.2, CELL_SIZE * 0.9]} />
           <meshStandardMaterial 
             color="#4a90e2" 
             transparent 
@@ -182,9 +176,9 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
       {/* Characters and their speech bubbles */}
       {setup.characters.map((character) => {
         const characterPosition = [
-          character.grid_position.item1 * setup.cell_size + setup.cell_size / 2,
-          setup.cell_size - (setup.cell_size * 0.5),
-          character.grid_position.item2 * setup.cell_size + setup.cell_size / 2
+          character.grid_position.item1 * CELL_SIZE + CELL_SIZE / 2,
+          CELL_SIZE * 0.4,
+          character.grid_position.item2 * CELL_SIZE + CELL_SIZE / 2
         ] as [number, number, number];
 
         const speechData = getLastSpeakDecision(character);
@@ -193,9 +187,8 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
           <group key={character.id}>
             <mesh
               position={characterPosition}
-              onClick={() => onCharacterClick(character)}
             >
-              <icosahedronGeometry args={[setup.cell_size / 3]} />
+              <icosahedronGeometry args={[CELL_SIZE * 0.3]} />
               <meshStandardMaterial 
                 color={character.colour}
                 roughness={0.3}
@@ -210,7 +203,7 @@ export const Grid = ({ setup, onCharacterClick, onEmptyCellClick }: GridProps) =
                   position={characterPosition}
                   characterColor={character.colour}
                   projectionLevel={speechData.projectionLevel}
-                  cellSize={setup.cell_size}
+                  cellSize={CELL_SIZE}
                 />
               </>
             )}

@@ -116,6 +116,26 @@
           "Playground"
         ],
         "operationId": "Iterate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InteractionInputViewModel"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InteractionInputViewModel"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InteractionInputViewModel"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -139,6 +159,19 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/Playground/ResetPlayground": {
+      "post": {
+        "tags": [
+          "Playground"
+        ],
+        "operationId": "ResetPlayground",
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -188,6 +221,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
           "colour": {
             "type": "string",
             "nullable": true
@@ -197,6 +234,13 @@
           },
           "model": {
             "type": "string",
+            "nullable": true
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnvironmentInputViewModel"
+            },
             "nullable": true
           },
           "responses": {
@@ -209,7 +253,7 @@
           "questions": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/QuestionAnswerViewModel"
             },
             "nullable": true
           }
@@ -234,11 +278,87 @@
           }
         }
       },
+      "EnvironmentActionResultViewModel": {
+        "type": "object",
+        "properties": {
+          "action_name": {
+            "type": "string"
+          },
+          "action_result": {
+            "type": "string"
+          }
+        }
+      },
+      "EnvironmentInputViewModel": {
+        "type": "object",
+        "properties": {
+          "correlation_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "action_results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnvironmentActionResultViewModel"
+            }
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "grid_position": {
+            "type": "string"
+          },
+          "iteration": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnvironmentSoundViewModel"
+            }
+          },
+          "time": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "EnvironmentSoundViewModel": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "InteractionInputViewModel": {
+        "type": "object",
+        "properties": {
+          "question_answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionAnswerViewModel"
+            },
+            "nullable": true
+          }
+        }
+      },
       "PlaygroundViewModel": {
         "required": [
           "available_models",
           "characters",
-          "cell_size",
           "grid_width",
           "grid_height"
         ],
@@ -256,10 +376,6 @@
               "$ref": "#/components/schemas/CharacterViewModel"
             }
           },
-          "cell_size": {
-            "type": "integer",
-            "format": "int32"
-          },
           "grid_width": {
             "type": "integer",
             "format": "int32"
@@ -267,13 +383,6 @@
           "grid_height": {
             "type": "integer",
             "format": "int32"
-          },
-          "questions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/QuestionViewModel"
-            },
-            "nullable": true
           }
         }
       },
@@ -303,19 +412,23 @@
           }
         }
       },
-      "QuestionViewModel": {
-        "required": [
-          "character_id",
-          "question"
-        ],
+      "QuestionAnswerViewModel": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
           "character_id": {
             "type": "string",
             "format": "uuid"
           },
           "question": {
             "type": "string"
+          },
+          "answer": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

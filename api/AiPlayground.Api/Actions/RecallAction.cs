@@ -7,17 +7,24 @@ namespace AiPlayground.Api.Actions;
 
 public class RecallAction : ActionBase, IAction
 {
-    public override ActionType ActionType => ActionType.CharacterBased;
+    [IgnorePropertyDuringProcessing]
+    public override ActionType Type => ActionType.CharacterBased;
+
+    [IgnorePropertyDuringProcessing]
     public override string Description => "Recall a memory from your vector database.";
 
     [JsonPropertyName("query")]
     [ExampleValue("What did the message at (0,1) say?")]
     public required string Query { get; set; }
 
-    public async Task<string> Run(Guid characterId)
+    public async Task<string> PreIteration(Guid characterId)
     {
         return "The application is still under construction and this function is not implemented yet, " +
                "but don't worry! All of your memories are in your chat history.";
+    }
+
+    public async Task PostIteration(Guid characterId)
+    {
     }
 
     public override void Setup(string decision)

@@ -1,5 +1,7 @@
 ﻿using AiPlayground.Api.Services;
 using AiPlayground.Api.ViewModels;
+using AiPlayground.Api.ViewModels.Inputs;
+using AiPlayground.Core.Models.Interactions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AiPlayground.Api.Controllers;
@@ -26,10 +28,18 @@ public class PlaygroundController(
     [HttpPost(Name = "Iterate")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<PlaygroundViewModel>> Iterate()
+    public async Task<ActionResult<PlaygroundViewModel>> Iterate([FromBody] InteractionInputViewModel inputModel)
     {
-        var updatedState = await _playgroundService.Iterate();
+        var updatedState = await _playgroundService.IterateAsync(inputModel);
 
         return Ok(updatedState);
+    }
+
+    [HttpPost(Name = "ResetPlayground")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult> ResetPlayground()
+    {
+        await _playgroundService.ResetPlaygroundAsync();
+        return Ok();
     }
 }

@@ -1,6 +1,7 @@
-﻿using AiPlayground.Core.Constants;
-using AiPlayground.Core.DataTransferObjects;
+﻿using System.Reflection;
+using AiPlayground.Core.Constants;
 using AiPlayground.Core.Models.Conversations;
+using AiPlayground.Core.Models.Interactions;
 using AiPlayground.Data.Entities;
 
 namespace AiPlayground.Data.Repositories;
@@ -11,22 +12,24 @@ public class CharacterRepository : JsonFileStore
 
     public async Task<CharacterEntity> CreateCharacterAsync(int createdInIteration, string colour, Tuple<int, int> gridPosition)
     {
+        var characters = await LoadAsync<List<CharacterEntity>>() ?? [];
+        var characterList = characters.ToList();
+
         var character = new CharacterEntity
         {
             AgeInIterations = 0,
             CreatedInIteration = createdInIteration,
             Colour = colour,
+            Name = $"Agent {characterList.Count + 1}",
             GridPosition = gridPosition,
             Inputs = [],
             Responses = [],
-            Questions = []
+            QuestionsAndAnswers = []
         };
 
-        var characters = await LoadAsync<List<CharacterEntity>>() ?? [];
-        var characterList = characters.ToList();
         characterList.Add(character);
         await SaveAsync(characterList);
-        
+
         return character;
     }
 
@@ -44,8 +47,8 @@ public class CharacterRepository : JsonFileStore
     }
 
     public async Task<CharacterEntity> AddIterationMessagesAsync(
-        Guid characterId, 
-        EnvironmentInputModel input, 
+        Guid characterId,
+        EnvironmentInputModel input,
         CharacterResponseModel response
     )
     {
@@ -55,11 +58,59 @@ public class CharacterRepository : JsonFileStore
 
         character.Inputs.Add(input);
         character.Responses.Add(response);
+
         character.AgeInIterations += 1;
 
         await SaveAsync(characters);
 
         return character;
+    }
+
+    public async Task AddQuestion(Guid characterId, string question)
+    {
+        var characters = await GetCharactersAsync();
+        var character = characters?.FirstOrDefault(c => c.Id == characterId)
+                   ?? throw new KeyNotFoundException($"Character with ID {characterId} not found.");
+
+        var questionAnswerModel = new QuestionAnswerModel
+        {
+            CharacterId = characterId,
+            Question = question
+        };
+
+        character.QuestionsAndAnswers.Add(questionAnswerModel);
+
+        await SaveAsync(characters);
+    }
+
+    public async Task AddQuestionAnswers(IEnumerable<QuestionAnswerModel> questionAnswerModels)
+    {
+        var characters = await GetCharactersAsync();
+
+        var characterQuestionGroups = questionAnswerModels
+            .GroupBy(qa => qa.CharacterId)
+            .ToDictionary(
+                characterGroup => characterGroup.Key,
+                characterGroup => characterGroup
+                    .GroupBy(model => model.Id)
+                    .ToDictionary(questionGroup => questionGroup.Key, questionGroup => questionGroup.ToList()));
+
+        foreach (var characterQuestionGroup in characterQuestionGroups)
+        {
+            var character = characters?.FirstOrDefault(c => c.Id == characterQuestionGroup.Key)
+                   ?? throw new KeyNotFoundException($"Character with ID '{characterQuestionGroup.Key}' not found.");
+
+            var questionIds = characterQuestionGroup.Value.Keys;
+            var characterQuestionsToUpdate = character.QuestionsAndAnswers.Where(q => questionIds.Contains(q.Id));
+           
+            foreach(var question in characterQuestionsToUpdate)
+            {
+                var answer = characterQuestionGroup.Value[question.Id].First().Answer;
+                question.Answer = characterQuestionGroup.Value[question.Id].First().Answer;
+            }
+        }
+
+        await SaveAsync(characters);
     }
 
     public async Task<CharacterEntity> UpdatePositionByDeltaAsync(Guid characterId, int dx, int dy)
@@ -68,8 +119,8 @@ public class CharacterRepository : JsonFileStore
         var character = characters?.FirstOrDefault(c => c.Id == characterId)
                ?? throw new KeyNotFoundException($"Character with ID {characterId} not found.");
 
-        var newX = Math.Max(0, Math.Min(PlaygroundConstants.DefaultGridSize - 1, character.GridPosition.Item1 + dx));
-        var newY = Math.Max(0, Math.Min(PlaygroundConstants.DefaultGridSize - 1, character.GridPosition.Item2 + dy));
+        var newX = Math.Max(0, Math.Min(PlaygroundConstants.GridWidth - 1, character.GridPosition.Item1 + dx));
+        var newY = Math.Max(0, Math.Min(PlaygroundConstants.GridHeight - 1, character.GridPosition.Item2 + dy));
 
         var otherCharacters = characters.Where(c => c.Id != characterId).ToList();
 
@@ -84,5 +135,12 @@ public class CharacterRepository : JsonFileStore
         await SaveAsync(characters);
 
         return character;
+    }
+
+    public async Task ResetCharactersAsync()
+    {
+        var characters = await LoadAsync<List<CharacterEntity>>() ?? [];
+        characters.Clear();
+        await SaveAsync(characters);
     }
 }

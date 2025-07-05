@@ -4,11 +4,8 @@ public class PlaygroundDto
 {
     public int Iterations { get; set; }
 
-    public IDictionary<Guid, string> CharacterQuestions { get; set; }
-
-    public PlaygroundDto(int iterations, IDictionary<Guid, string> characterQuestions)
+    public PlaygroundDto(int iterations)
     {
         Iterations = iterations;
-        CharacterQuestions = characterQuestions;
     }
 }

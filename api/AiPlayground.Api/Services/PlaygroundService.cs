@@ -1,11 +1,12 @@
 ﻿using System.Text.Json;
 using System.Text.RegularExpressions;
 using AiPlayground.Api.ViewModels;
+using AiPlayground.Api.ViewModels.Inputs;
 using AiPlayground.Api.Workflows;
 using AiPlayground.Core.Constants;
 using AiPlayground.Core.DataTransferObjects;
+using AiPlayground.Core.Enums;
 using AiPlayground.Core.Models.Conversations;
-using Azure.AI.OpenAI;
 using OpenAI.Chat;
 
 namespace AiPlayground.Api.Services;
@@ -24,6 +25,15 @@ public class PlaygroundService(
     private readonly PlaygroundWorkflow _playgroundWorkflow = playgroundWorkflow ?? throw new ArgumentNullException(nameof(playgroundWorkflow));
     private readonly PromptWorkflow _promptWorkflow = promptWorkflow ?? throw new ArgumentNullException(nameof(promptWorkflow));
 
+    private readonly ChatCompletionOptions _chatClientOptions = new()
+    {
+        MaxOutputTokenCount = AzureOpenAiConstants.MaxCompletionTokens,
+        Temperature = AzureOpenAiConstants.Temperature,
+        TopP = AzureOpenAiConstants.TopP,
+        FrequencyPenalty = AzureOpenAiConstants.FrequencyPenalty,
+        PresencePenalty = AzureOpenAiConstants.PresencePenalty,
+    };
+
     public async Task<PlaygroundViewModel> GetSetupAsync()
     {
         var characters = await _characterWorkflow.GetCharactersAsync();
@@ -31,38 +41,38 @@ public class PlaygroundService(
 
         var model = new PlaygroundViewModel
         {
-            AvailableModels = _characterWorkflow.GetAvailableModels().ToList(),
-            Characters = characters.Select(c => new CharacterViewModel(c)).ToList(),
-            CellSize = PlaygroundConstants.DefaultCellSizePixels,
-            GridWidth = PlaygroundConstants.DefaultGridSize,
-            GridHeight = PlaygroundConstants.DefaultGridSize,
+            AvailableModels = [.. _characterWorkflow.GetAvailableModels()],
+            Characters = [.. characters.Select(c => new CharacterViewModel(c))],
+            GridWidth = PlaygroundConstants.GridWidth,
+            GridHeight = PlaygroundConstants.GridHeight,
+            Iteration = playground.Iterations
         };
 
         return model;
     }
 
-    public async Task<PlaygroundViewModel> Iterate()
+    public async Task<PlaygroundViewModel> IterateAsync(InteractionInputViewModel interactionInputViewModel)
     {
-        var characters = await _characterWorkflow.GetCharactersAsync();
-        var playground = await _playgroundWorkflow.GetPlaygroundAsync();
-        var (characterEnvironmentInputs, characterMessages, characterQuestions) = await BuildCharacterData(characters);
-
-        var requestOptions = new ChatCompletionOptions
+        var isValid = IsInputModelValid(interactionInputViewModel);
+        if (!isValid)
         {
-            MaxOutputTokenCount = AzureOpenAiConstants.MaxCompletionTokens,
-            Temperature = AzureOpenAiConstants.Temperature,
-            TopP = AzureOpenAiConstants.TopP,
-            FrequencyPenalty = AzureOpenAiConstants.FrequencyPenalty,
-            PresencePenalty = AzureOpenAiConstants.PresencePenalty,
-        };
+            return await GetSetupAsync();
+        }
+
+        if (interactionInputViewModel.QuestionAnswers is not null)
+        {
+            var questionAnswers = interactionInputViewModel.QuestionAnswers.Select(qa => qa.FromViewModel());
+            await _characterWorkflow.AddQuestionAnswers(questionAnswers);
+        }
+
+        var characters = await _characterWorkflow.GetCharactersAsync();
+        var (characterEnvironmentInputs, characterMessages) = await BuildCharacterDataAsync(characters);
 
         var llmCommunicationTasks = characters.Select(async character =>
         {
             try
             {
-                var response = await _chatClient.CompleteChatAsync(characterMessages[character.Id], requestOptions);
-
-                _logger.LogInformation("Generated output for character with ID '{Id}': {Response}", character.Id, response);
+                var response = await _chatClient.CompleteChatAsync(characterMessages[character.Id], _chatClientOptions);
 
                 var responseJson = response.Value.Content[0].Text;
                 var characterResponse = ParseLlmResponse(responseJson, character.Id);
@@ -77,30 +87,50 @@ public class PlaygroundService(
 
         await Task.WhenAll(llmCommunicationTasks);
 
-        await _playgroundWorkflow.UpdateIterationsAsync();
+        await UpdateCharacterDataAsync(characters);
 
         characters = await _characterWorkflow.GetCharactersAsync();
+        var playground = await _playgroundWorkflow.UpdateIterationsAsync();
 
         return new PlaygroundViewModel
         {
-            AvailableModels = _characterWorkflow.GetAvailableModels().ToList(),
+            AvailableModels = [.. _characterWorkflow.GetAvailableModels()],
             Characters = characters.Select(c => new CharacterViewModel(c)),
-            CellSize = PlaygroundConstants.DefaultCellSizePixels,
-            GridWidth = PlaygroundConstants.DefaultGridSize,
-            GridHeight = PlaygroundConstants.DefaultGridSize,
-            Questions = characterQuestions.Any() ? characterQuestions : null
+            GridWidth = PlaygroundConstants.GridWidth,
+            GridHeight = PlaygroundConstants.GridHeight,
+            Iteration = playground.Iterations
         };
     }
 
+    public async Task ResetPlaygroundAsync()
+    {
+        await _playgroundWorkflow.ResetPlaygroundAsync();
+        _logger.LogInformation("Playground state reset");
+    }
+
+    private bool IsInputModelValid(InteractionInputViewModel inputViewModel)
+    {
+        if (inputViewModel.QuestionAnswers is null)
+        {
+            return true;
+        }
+
+        if (inputViewModel.QuestionAnswers.Any(qa => qa.Answer is null))
+        {
+            _logger.LogWarning("One or more answers missing from input view model.");
+            return false;
+        }
+
+        return true;
+    }
+
     private async Task<(
-            IDictionary<Guid, EnvironmentInputModel>, 
-            IDictionary<Guid, IList<ChatMessage>>,
-            IList<QuestionViewModel>
-        )> BuildCharacterData(IEnumerable<CharacterDto> characters)
+            IDictionary<Guid, EnvironmentInputModel>,
+            IDictionary<Guid, List<ChatMessage>>
+        )> BuildCharacterDataAsync(IEnumerable<CharacterDto> characters)
     {
         var characterEnvironmentInputs = new Dictionary<Guid, EnvironmentInputModel>();
-        var characterMessages = new Dictionary<Guid, IList<ChatMessage>>();
-        var characterQuestions = new List<QuestionViewModel>();
+        var characterMessages = new Dictionary<Guid, List<ChatMessage>>();
         var characterSightsSeen = new List<string>();
         var characterSoundsHeard = new List<EnvironmentSoundProcessingModel>();
 
@@ -110,17 +140,8 @@ public class PlaygroundService(
         // speaking occurred.
         foreach (var character in characters)
         {
-            var environmentInput = await _characterWorkflow.BuildEnvironmentInputAsync(character.Id);
-
-            var questions = environmentInput.ActionResults.Where(ar => ar.ActionName == "Ask");
-            if (questions.Any())
-            {
-                characterQuestions.AddRange(questions.Select(question => new QuestionViewModel
-                {
-                    CharacterId = character.Id,
-                    Question = question.ActionResult.Split('`')[1],
-                }));
-            }
+            var actionResults = await _characterWorkflow.ProcessActionsAsync(character.Id, IterationStage.PreIteration);
+            var environmentInput = await _characterWorkflow.BuildEnvironmentInputAsync(character.Id, actionResults);
 
             var sights = environmentInput.ActionResults.Where(ar => ar.ActionName == "Look");
             if (sights.Any())
@@ -129,7 +150,7 @@ public class PlaygroundService(
             }
 
             var speech = environmentInput.ActionResults.Where(ar => ar.ActionName == "Speak");
-            foreach(var phrase in speech)
+            foreach (var phrase in speech)
             {
                 var match = Regex.Match(phrase.ActionResult, @"could be heard from \((\-?\d+), (\-?\d+)\) to \((\-?\d+), (\-?\d+)\)");
 
@@ -156,8 +177,8 @@ public class PlaygroundService(
                 }
             }
 
-            characterMessages[character.Id] = await BuildChatHistoryAsync(character.Id);
             characterEnvironmentInputs[character.Id] = environmentInput;
+            characterMessages[character.Id] = await BuildChatHistoryAsync(character.Id);
         }
 
         foreach (var character in characters)
@@ -174,10 +195,10 @@ public class PlaygroundService(
             characterMessages[character.Id].Add(new UserChatMessage(inputJson));
         }
 
-        return (characterEnvironmentInputs, characterMessages, characterQuestions);
+        return (characterEnvironmentInputs, characterMessages);
     }
 
-    private async Task<IList<ChatMessage>> BuildChatHistoryAsync(Guid characterId)
+    private async Task<List<ChatMessage>> BuildChatHistoryAsync(Guid characterId)
     {
         var systemPrompt = _promptWorkflow.GetSystemPrompt();
 
@@ -233,4 +254,11 @@ public class PlaygroundService(
         }
     }
 
+    private async Task UpdateCharacterDataAsync(IEnumerable<CharacterDto> characters)
+    {
+        foreach (var character in characters)
+        {
+            await _characterWorkflow.ProcessActionsAsync(character.Id, IterationStage.PostIteration);
+        }
+    }
 }

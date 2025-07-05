@@ -1,26 +1,69 @@
-import axios from 'axios';
-import { Character, CreateCharacterInput, PlaygroundSetup } from '../types/api';
+import { CreateCharacterInput, PlaygroundSetup, Character, Question } from '../types/api';
 
 const API_BASE_URL = 'https://localhost:7012';
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+export async function getPlaygroundSetup(): Promise<PlaygroundSetup> {
+  const response = await fetch(`${API_BASE_URL}/Playground/GetPlaygroundSetup`);
+  if (!response.ok) {
+    throw new Error('Failed to get playground setup');
+  }
+  return response.json();
+}
 
-export const getPlaygroundSetup = async (): Promise<PlaygroundSetup> => {
-  const response = await api.get<PlaygroundSetup>('/Playground/GetPlaygroundSetup');
-  return response.data;
-};
+export async function createCharacter(character: CreateCharacterInput): Promise<Character> {
+  const response = await fetch(`${API_BASE_URL}/Character/CreateCharacter`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(character),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to create character');
+  }
+  return response.json();
+}
 
-export const createCharacter = async (input: CreateCharacterInput): Promise<Character> => {
-  const response = await api.post<Character>('/Character/CreateCharacter', input);
-  return response.data;
-};
+export async function iteratePlayground(questionAnswers?: Question[]): Promise<PlaygroundSetup> {
+  const response = await fetch(`${API_BASE_URL}/Playground/Iterate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      question_answers: questionAnswers?.map(q => ({
+        id: q.id,
+        character_id: q.character_id,
+        question: q.question,
+        answer: q.answer
+      }))
+    }),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to iterate playground');
+  }
+  return response.json();
+}
 
-export const iteratePlayground = async (): Promise<PlaygroundSetup> => {
-  const response = await api.post<PlaygroundSetup>('/Playground/Iterate');
-  return response.data;
-}; 
+export async function resetPlayground(): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/Playground/ResetPlayground`, {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to reset playground');
+  }
+}
+
+export async function answerQuestions(answers: Record<string, string>): Promise<PlaygroundSetup> {
+  const response = await fetch(`${API_BASE_URL}/playground/answer`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ answers }),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to submit answers');
+  }
+  return response.json();
+} 

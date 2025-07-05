@@ -13,6 +13,9 @@ public class EnvironmentInputModel : ICorrelated
     [JsonPropertyName("age")]
     public required int Age { get; set; }
 
+    [JsonPropertyName("name")]
+    public required string Name { get; set; }
+
     [JsonPropertyName("environment")]
     public required string Environment { get; set; }
 
@@ -25,6 +28,6 @@ public class EnvironmentInputModel : ICorrelated
     [JsonPropertyName("sounds")]
     public IEnumerable<EnvironmentSoundModel> Sounds { get; set; } = [];
 
-    [JsonPropertyName("time")]
-    public required int Time { get; set; }
+    [JsonPropertyName("date_time_iso8601")]
+    public required string DateTimeIso8601 { get; set; }
 }

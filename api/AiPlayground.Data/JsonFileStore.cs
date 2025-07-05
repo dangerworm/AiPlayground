@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace AiPlayground.Data
 {
@@ -26,7 +25,7 @@ namespace AiPlayground.Data
                 ? new()
                 : value;
             }
-            catch (JsonException ex)
+            catch (JsonException)
             {
                 return new();
             }

@@ -10,7 +10,7 @@ namespace AiPlayground.Api.Actions
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         
-        private static Dictionary<Type, string> _typeAlias = new Dictionary<Type, string>
+        private static readonly Dictionary<Type, string> _typeAlias = new()
         {
             { typeof(bool), "bool" },
             { typeof(byte), "byte" },
@@ -93,30 +93,23 @@ namespace AiPlayground.Api.Actions
             return string.Join(Environment.NewLine, actionDescriptions);
         }
 
-        private IEnumerable<Type> GetActionTypes()
+        private static IEnumerable<Type> GetActionTypes()
         {
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => typeof(IAction).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract)
-                .ToList();
+                .Where(type => typeof(IAction).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract);
         }
 
         private static List<ActionInputParameterModel>? GetInputParameters(Type action)
         {
-            var ignoredProperties = new HashSet<string>
-            {
-                nameof(ActionBase.ActionType),
-                nameof(ActionBase.Description)
-            };
-
             var actionProperties = action.GetProperties()
-                .Where(property => !ignoredProperties.Contains(property.Name));
+                .Where(property => GetAttribute<IgnorePropertyDuringProcessingAttribute>(property) is null);
 
             var actionInputParameters = new List<ActionInputParameterModel>();
             foreach (var property in actionProperties)
             {
-                var jsonName = GetAttributeProperty<JsonPropertyNameAttribute>(property, action.Name, "Name");
-                var exampleValue = GetAttributeProperty<ExampleValueAttribute>(property, action.Name, "ExampleValue");
+                var jsonName = GetAttributePropertyValue<JsonPropertyNameAttribute>(property, action.Name, "Name");
+                var exampleValue = GetAttributePropertyValue<ExampleValueAttribute>(property, action.Name, "ExampleValue");
                 var isRequired = property.GetCustomAttribute<RequiredMemberAttribute>() != null;
 
                 actionInputParameters.Add(new ActionInputParameterModel
@@ -135,7 +128,7 @@ namespace AiPlayground.Api.Actions
 
         private static string FormatRawExampleValue(string exampleValue)
         {
-            object parsedValue = string.Empty;
+            object parsedValue;
             string formattedExampleValue;
 
             if (bool.TryParse(exampleValue, out var boolVal))
@@ -190,10 +183,16 @@ namespace AiPlayground.Api.Actions
                 : type.Name;
         }
 
-        private static string GetAttributeProperty<TAttribute>(MemberInfo member, string actionName, string innerPropertyName)
+        private static TAttribute? GetAttribute<TAttribute>(MemberInfo member)
             where TAttribute : Attribute
         {
-            var attribute = member.GetCustomAttribute<TAttribute>(inherit: false)
+            return member.GetCustomAttribute<TAttribute>(inherit: false);
+        }
+
+        private static string GetAttributePropertyValue<TAttribute>(MemberInfo member, string actionName, string innerPropertyName)
+            where TAttribute : Attribute
+        {
+            var attribute = GetAttribute<TAttribute>(member)
                 ?? throw new InvalidOperationException($"Property {member.Name} in action {actionName} does not have a valid {typeof(TAttribute).Name} attribute.");
 
             // Get the value of the inner property of the attribute by name

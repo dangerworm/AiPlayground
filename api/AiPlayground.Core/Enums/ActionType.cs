@@ -4,6 +4,6 @@
     {
         EnvironmentBased,
         CharacterBased,
-        ActionBased
+        ActionBased,
     }
 }

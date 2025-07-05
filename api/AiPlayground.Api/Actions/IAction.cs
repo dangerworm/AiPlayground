@@ -5,9 +5,11 @@ namespace AiPlayground.Api.Actions;
 
 public interface IAction
 {
-    public ActionType ActionType { get; }
+    public ActionType Type { get; }
 
-    public Task<string> Run(Guid characterId);
+    public Task<string> PreIteration(Guid characterId);
+    
+    public Task PostIteration(Guid characterId);
 
     public abstract void Setup(string decision);
 }

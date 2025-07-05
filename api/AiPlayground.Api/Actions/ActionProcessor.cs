@@ -8,10 +8,13 @@ public class ActionProcessor(ActionProvider actionProvider)
 {
     private readonly ActionProvider _actionProvider = actionProvider ?? throw new ArgumentNullException(nameof(actionProvider));
 
-    public async Task<IEnumerable<EnvironmentActionResultModel>> ProcessActions(CharacterDto character, ActionType actionType)
+    public async Task<IEnumerable<EnvironmentActionResultModel>> ProcessActions(
+        CharacterDto character, 
+        IterationStage iterationStage, 
+        ActionType actionType)
     {
         var actions = GetActions()
-            .Where(action => action.ActionType.Equals(actionType));
+            .Where(action => action.Type.Equals(actionType));
 
         var decisions = character
             .Responses
@@ -37,8 +40,14 @@ public class ActionProcessor(ActionProvider actionProvider)
             }
             
             action.Setup(decision);
-            var result = await action.Run(character.Id);
-            if (result is null)
+            if (iterationStage.Equals(IterationStage.PostIteration))
+            {
+                await action.PostIteration(character.Id);
+                continue;
+            }
+
+            var result = await action.PreIteration(character.Id);
+            if (string.IsNullOrWhiteSpace(result))
             {
                 continue;
             }

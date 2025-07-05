@@ -1,45 +1,37 @@
 ﻿using System.Text.Json.Serialization;
-using AiPlayground.Core.Constants;
 using AiPlayground.Core.DataTransferObjects;
 
-namespace AiPlayground.Api.ViewModels
+namespace AiPlayground.Api.ViewModels;
+
+public class CharacterViewModel(CharacterDto character)
 {
-    public class CharacterViewModel
-    {
-        [JsonPropertyName("id")]
-        public Guid Id { get; }
+    [JsonPropertyName("id")]
+    public Guid Id { get; } = character.Id;
 
-        [JsonPropertyName("created_at")]
-        public DateTime CreatedAt { get; }
+    [JsonPropertyName("created_at")]
+    public DateTime CreatedAt { get; } = character.CreatedAt;
 
-        [JsonPropertyName("age")]
-        public int Age { get; }
+    [JsonPropertyName("age")]
+    public int Age { get; } = character.AgeInIterations;
 
-        [JsonPropertyName("colour")]
-        public string Colour { get; }
+    [JsonPropertyName("name")]
+    public string Name { get; } = character.Name;
 
-        [JsonPropertyName("grid_position")]
-        public Tuple<int, int> GridPosition { get; }
+    [JsonPropertyName("colour")]
+    public string Colour { get; } = character.Colour;
 
-        [JsonPropertyName("model")]
-        public string Model { get; }
+    [JsonPropertyName("grid_position")]
+    public Tuple<int, int> GridPosition { get; } = character.GridPosition;
 
-        [JsonPropertyName("responses")]
-        public IEnumerable<CharacterResponseViewModel> Responses { get; }
+    [JsonPropertyName("model")]
+    public string Model { get; } = "GPT 4.1";
 
-        [JsonPropertyName("questions")]
-        public IEnumerable<string> Questions { get; }
+    [JsonPropertyName("inputs")]
+    public IEnumerable<EnvironmentInputViewModel> Inputs { get; } = [.. character.Inputs.Select(i => new EnvironmentInputViewModel(i))];
 
-        public CharacterViewModel(CharacterDto character)
-        {
-            Id = character.Id;
-            CreatedAt = character.CreatedAt;
-            Age = character.AgeInIterations;
-            Colour = character.Colour;
-            GridPosition = character.GridPosition;
-            Model = "GPT 4.1";
-            Responses = [.. character.Responses.Select(r => new CharacterResponseViewModel(r))];
-            Questions = character.Questions;
-        }
-    }
+    [JsonPropertyName("responses")]
+    public IEnumerable<CharacterResponseViewModel> Responses { get; } = [.. character.Responses.Select(r => new CharacterResponseViewModel(r))];
+
+    [JsonPropertyName("questions")]
+    public IEnumerable<QuestionAnswerViewModel> Questions { get; } = character.Questions.Select(q => new QuestionAnswerViewModel(q));
 }

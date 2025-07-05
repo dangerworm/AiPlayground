@@ -16,6 +16,9 @@ public class PlaygroundViewModel
     [JsonPropertyName("grid_height")]
     public required int GridHeight { get; set; }
 
+    [JsonPropertyName("items")]
+    public required IEnumerable<ItemViewModel>? Items { get; set; }
+
     [JsonPropertyName("iteration")]
     public required int Iteration { get; set; }
 }

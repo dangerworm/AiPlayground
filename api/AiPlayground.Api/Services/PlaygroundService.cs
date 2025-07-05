@@ -45,6 +45,7 @@ public class PlaygroundService(
             Characters = [.. characters.Select(c => new CharacterViewModel(c))],
             GridWidth = PlaygroundConstants.GridWidth,
             GridHeight = PlaygroundConstants.GridHeight,
+            Items = [.. playground.Items.Select(i => new ItemViewModel(i))],
             Iteration = playground.Iterations
         };
 
@@ -98,7 +99,8 @@ public class PlaygroundService(
             Characters = characters.Select(c => new CharacterViewModel(c)),
             GridWidth = PlaygroundConstants.GridWidth,
             GridHeight = PlaygroundConstants.GridHeight,
-            Iteration = playground.Iterations
+            Iteration = playground.Iterations,
+            Items = playground.Items?.Select(i => new ItemViewModel(i))
         };
     }
 
